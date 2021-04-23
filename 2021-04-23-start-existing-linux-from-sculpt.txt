@@ -1,0 +1,216 @@
+
+
+         Starting an existing Linux installation from Sculpt
+
+
+In the last years, I've had an on-and-off relationship with Genode mostly
+because other commitments kept me from spending time with the framework.
+Although I was keen on using Sculpt as a day-to-day OS, I didn't manage to make
+a smooth transition.
+Initially, my idea was to use my existing Linux system and install Sculpt in
+parallel.
+Ideally, I would be able to start my existing Linux system in Virtualbox on
+Sculpt.
+My first efforts were stalled by some EFI boot issues and due to a lack of time
+this idea slumbered for about two years...until recently.
+
+No need to install a new Linux and still being able to boot Linux natively in
+emergencies was the perfect compromise to get to know Sculpt and transition
+gradually.
+Of course, I did my homework and read up on what others have posted here.
+Most notably,
+[http://genodians.org/valerius/2019-04-23-physical-hard-disk-passthrough - Valery's setup]
+of hard-disk passthrough.
+Yet, I found this setup a bit too complicated and would therefore like to share
+my tips and recommendations.
+
+Before I dive into the topic, let me first describe the initial situation and
+my goal.
+First of all, I have a single Linux installation on my GPT-partitioned hard
+disk.
+My goal with this scheme is to boot Linux and Sculpt natively via UEFI.
+Furthermore, from within Sculpt, I want to run my Linux system in VirtualBox.
+
+Since the EFI support of VirtualBox is not very mature (and actually
+disabled in Genode), I must also be able to boot the Linux system in legacy
+mode.
+I'm therefore using a pretty standard partitioning scheme that allows the system
+to be booted via GRUB in UEFI mode and in legacy mode:
+
+! Number  Start (sector)    End (sector)  Size       Code  Name
+!   1            2048            4095   1024.0 KiB  EF02  BIOS boot partition
+!   2            4096          208895   100.0 MiB   EF00  EFI system partition
+!   3          208896        21180415   10.0 GiB    8300  GENODE
+!   4        21180416       105066495   40.0 GiB    8300  ARCHLINUX
+!   5       105066496       629354495   250.0 GiB   8300  HOME
+!   6       629354496       943927295   150.0 GiB   8300  SHARED
+
+Partition 1 is the _BIOS boot partition (BBP)_ and contains the GRUB image that would
+normally reside in the first (unused) disk sectors of an MBR-partitioned disk.
+On GPT-partitioned disks, these sectors hold the actual partition table though.
+When booting in legacy mode, the GRUB bootloader is read from the MBR and the
+BBP.
+The _EFI system partition (ESP)_ contains all the files to boot the system in
+UEFI mode.
+The _GENODE_ partition hosts the Sculpt files. It is optional as you may
+boot Sculpt solely from a USB stick. Yet, I wanted to have both systems
+installed on my hard disk.
+The Linux system is spread across the _ARCHLINUX_ partition, hosting the root
+file system, and the _HOME_ partition.
+The _SHARED_ partition is an optional data partition for direct use within
+(native) Linux or Sculpt.
+
+In the following, I will refer to the partitions as '/dev/sdaX' where 'X' is the
+partition number.
+If you have a NVMe drive, you must replace this with '/dev/nvme0n1pX'.
+
+Linux preparations
+------------------
+
+Starting from my native Linux system, the GRUB bootloader was installed on the
+EFI partition as follows:
+
+! mount /dev/sda2 /efi
+! grub-install --target=x86_64-efi --efi-directory=/efi \
+!   --boot-directory=/efi --bootloader-id=GRUB
+! grub-mkconfig -o /efi/grub/grub.cfg
+
+I  manually added a menuentry for booting Genode in '/efi/grub/grub.cfg':
+
+! menuentry 'Genode' {
+!   search --set=root --label=GENODE --hint hd0,gpt3
+!   set gfxpayload="0x0x32"
+!   insmod gfxterm
+!   terminal_output gfxterm
+!   insmod gfx_background
+!   insmod png
+!   background_image -m center /boot/boot.png
+!   configfile /boot/grub/grub.cfg
+! }
+
+In addition, you should make sure that the remaining parts in
+'/efi/grub/grub.cfg' use UUIDs or labels to find the partitions and root
+filesystems.
+
+Next, I additionally installed the legacy version of GRUB as follows:
+
+! grub-install --target=i386-pc --boot-directory=/boot /dev/sda
+! grub-mkconfig -o /boot/grub/grub.cfg
+
+This installed the bootloader image in MBR and BBP, the modules in '/boot' on
+the root file system ('/dev/sda4') and created another 'grub.cfg'.
+The latter will be the config file used in VirtualBox, thus there is no need to
+add a menuentry for Genode.
+
+As you may have noticed already, it is a good habit to use file system UUIDs for
+identifying file systems. Thus, have a look at your '/etc/fstab' and change any
+'/dev/nvme*' or '/dev/sd*' into '/dev/disk/by-uuid/*'.
+This way, your Linux installation becomes more robust against hardware changes.
+Moreover, you should make sure that 'CONFIG_SATA_AHCI=y' in your kernel config
+by checking '/proc/config.gz'.
+If 'CONFIG_SATA_AHCI=m', make sure that your initramfs contains the 'ahci'
+module by taking a look at '/etc/mkinitcpio.conf'.
+Otherwise, your system will be unable to find the root file system when booting
+in VirtualBox.
+
+Now, in order to make the system bootable with VirtualBox but not interfere with
+the partitions that are used by my Sculpt system, I must prepare a special
+vmdk file:
+
+! VBoxManage internalcommands createrawvmdk -filename linux.vmdk \
+!    -rawdisk /dev/sda -partitions 1,4,5 -relative
+
+This creates a virtual disk with the same GPT partition table as my hard
+drive but only expose the partitions 1, 4 and 5. Read accesses to any other
+sector will return zeroes.
+Note, that this command also creates the file 'linux-pt.vmdk' containing the
+partition table.
+I copied both vmdk files to '/vm/debian' on the _GENODE_ partition.
+
+Pro tip: You may add a '-mbr file.img' argument to the command to provide
+alternative MBR content to be stored in the virtual disk.
+
+Sculpt preparations
+-------------------
+
+At this point, I can switch over and boot the Sculpt system.
+Here, I must first create a local copy of the 'vbox-nova-sculpt' package as
+[http://genodians.org/skalk/2019-03-18-hybrid-packages - described by skalk].
+More precisely, I added three block devices to 'init.config':
+
+! <dir name="dev">
+!   <log/>
+!   <rtc/>
+!   <block name="sda1" label="1" block_buffer_count="128"/>
+!   <block name="sda4" label="4" block_buffer_count="128"/>
+!   <block name="sda5" label="5" block_buffer_count="128"/>
+! </dir>
+
+Also, don't forget to add the Block service to '<parent-provides>' and to route
+the service:
+
+! <route>
+!   <service name="Block"> <parent/> </service>
+!   [...]
+! </route>
+
+In the launcher file, I route the block sessions to the corresponding
+partitions:
+
+! <launcher pkg="local/pkg/vbox5-nova-sculpt/<version>">
+!   <route>
+!     <service name="Block" label_suffix=" -> 1">
+!       <child name="nvme-0.part_block" label="1"/>
+!     </service>
+!     <service name="Block" label_suffix=" -> 4">
+!       <child name="nvme-0.part_block" label="4"/>
+!     </service>
+!     <service name="Block" label_suffix=" -> 5">
+!       <child name="nvme-0.part_block" label="5"/>
+!     </service>
+!     [...]
+!   </route>
+! </launcher>
+
+In a last step before starting the VM, I need to create an appropriate
+'machine.vbox' file in the vm_fs.
+I took the file from 'repos/gems/run/sculpt/machine.vbox' as a blueprint and
+modified the '<MediaRegistry>' and '<StorageControllers>' parts.
+
+*You find the actual uuid of your virtual disk in the vmdk file at the line
+starting with 'ddb.uuid.image='.*
+
+!     <MediaRegistry>
+!       <HardDisks>
+!         <HardDisk uuid="{ff9454ce-c186-44ed-b0b8-33d6a2e87b06}"
+!                   location="linux.vmdk" format="VMDK" type="Normal"/>
+!       </HardDisks>
+!     </MediaRegistry>
+!     [...]
+!     <StorageControllers>
+!       <StorageController name="SATA" type="AHCI" PortCount="4"
+!                           useHostIOCache="true"
+!                          Bootable="true"
+!                          IDE0MasterEmulationPort="0"
+!                          IDE0SlaveEmulationPort="1"
+!                          IDE1MasterEmulationPort="2"
+!                          IDE1SlaveEmulationPort="3">
+!         <AttachedDevice type="HardDisk" port="0" device="0">
+!           <Image uuid="{ff9454ce-c186-44ed-b0b8-33d6a2e87b06}"/>
+!         </AttachedDevice>
+!       </StorageController>
+!     </StorageControllers>
+
+That's it. I can now start my native Linux as a VM in Sculpt.
+
+Final words
+-----------
+
+As always with multiboot installations, the tricky part is getting the
+partitioning right and setting up the boot manager.
+The downside is that you might need to maintain two versions of a 'grub.cfg'.
+On my Archlinux, the 'grub.cfg' is pretty static as the kernel and initramfs
+image file names never change.
+Another observation is that the names of network devices will naturally change
+between the native and virtualised Linux, however, systemd-networkd makes a good
+job with managing different network devices.
