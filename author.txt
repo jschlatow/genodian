@@ -1,0 +1,10 @@
+Johannes got in contact with Genode in 2014 when he was working as a real-time
+systems researcher at TU Braunschweig.  At that time, Genode inspired his own
+research and was applied in the DFG-funded research unit "Controlling Concurrent
+Change" for building demonstrators of dynamically managing critical embedded
+systems. With an ever growing enthusiasm towards the framework he became a
+full-time Genode developer in 2021.
+
+*GitHub* [https://github.com/jschlatow - jschlatow]
+
+*Company* [https://www.genode-labs.com - Genode Labs]
