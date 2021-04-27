@@ -177,8 +177,8 @@ In a last step before starting the VM, I need to create an appropriate
 I took the file from 'repos/gems/run/sculpt/machine.vbox' as a blueprint and
 modified the '<MediaRegistry>' and '<StorageControllers>' parts.
 
-*You find the actual uuid of your virtual disk in the vmdk file at the line
-starting with 'ddb.uuid.image='.*
+_You find the actual uuid of your virtual disk in the vmdk file at the line_
+_starting with 'ddb.uuid.image='._
 
 !     <MediaRegistry>
 !       <HardDisks>
