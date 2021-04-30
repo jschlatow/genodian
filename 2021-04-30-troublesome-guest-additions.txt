@@ -1,0 +1,135 @@
+
+
+                      Troublesome guest additions
+
+
+On my journey towards transitioning to Sculpt as a day-to-day OS, I already
+desribed how to access an existing Linux installation in my previous article.
+Since I recently struggled with installing the VirtualBox Guest Additions, I
+want to share my findings with a short follow up article.
+
+As an Archlinux user, I usually appreciate running up-to-date software versions.
+Yet, once in a while, I suffer from that. Installing the VirtualBox Guest
+Additions was one of the latter kind when it came to the shared clipboard
+support.
+If you are new to Sculpt you should first have a look at
+[http://genodians.org/nfeske/2019-07-03-copy-paste - Norman's article about copy-paste support in Sculpt]
+to get the basics.
+
+First of all, your Linux guest should fire up already without any guest
+additions as the 'vboxvideo' module is shipped with the kernel. The X server
+perfectly recognised when I resized the guest window and I added a key binding
+for 'xrandr --output VGA-1 --auto'.
+Yet, in order to mount shared folders and get a shared clipboard, you must
+install the guest additions.
+My Archlinux shipped with LTS Kernel 5.10 and Virtualbox 6.1.22. I have not
+noticed any trouble with the shared folder support provided by the 'vboxsf'
+module. However, 'VBoxClient --clipboard' failed to spin up, apparently because
+of an incompatibility between the host version (5.1.38) and the guest version
+(6.1.22).
+
+Installing old guest additions
+------------------------------
+
+Scanning the changelog at virtualbox.org, I recognised the regular "support
+Linux Kernel 5.x" changes. As a matter of fact, trying to compile a much older
+version for my 5.10 kernel was not successful. I therefore built and installed
+the LTS Kernel 5.4 from AUR (Archlinux User Repository) before trying again.
+
+Unfortunately, there has never been a 5.1.38 package on Archlinux, hence
+downgrading the virtualbox-guest-dkms package was not an option.
+Instead, I opted for installing the guest additions from the iso file.
+You can simply download any version from virtualbox.org and mount it and execute
+the autorun script as follows:
+
+! sudo mount -o loop /path/to/VBoxGuestAdditions.iso /mnt
+! cd /mnt
+! sudo ./autorun.sh
+
+At first, I thought the installation of guest additions 5.1.38 succeeded but, a
+few minutes later, I noticed some errors have been logged to
+'/var/log/vboxadd-install.log'.
+As it turned out, this version was not yet compatible with Kernel 5.4.
+Trying 5.2.44 was more successful but also installed an old 'vboxvideo' module
+that took precedence over the already installed one.
+As the older 'vboxvideo' module did not recognise the resolution changes
+anymore, I helped myself with the pragmatic solution of manually deleting the old
+module:
+
+! rm /lib/modules/5.4.133-1-lts54/misc/vboxvideo.ko.xz
+! depmod 5.4.133-1-lts54
+
+Note, that a reboot is necessary after installation.
+
+Testing the shared clipboard
+----------------------------
+
+For the shared clipboard, you not only need a compatible version of the
+'vboxguest' module but also a running 'VBoxClient --clipboard' service.
+First, check 'lsmod | grep vboxguest' to see whether the module was loaded.
+If 'VBoxClient --clipboard' is not already running, you may start it manually.
+The 5.2.44 version spun up perfectly together with the 5.1.38 host version.
+
+Testing whether the shared clipboard works can be quite tricky because there are
+multiple copy-paste buffers on X11-based Linux systems.
+It's best to install 'xsel' and use the following commands for testing:
+
+! echo "test" | xsel -i -b
+
+If you enabled verbose logging in '/config/clipboard' in Sculpt's Leitzentrale,
+you should see the clipboard content reported in the Log.
+Vice versa, if you select some text in the inspect window (holding SHIFT). You
+should also see the copied text in the Log and be able to paste it in your Linux
+guest with the following command:
+
+! xsel -b
+
+If anything does not work correctly (and 'VBoxClient --clipboard' is really
+running), you may draw some logging output from 'VBoxClient' as follows:
+
+! VBOX_RELEASE_LOG_DEST=file=/tmp/clipboard.log \
+! VBOX_RELEASE_LOG=+all.e.l.f VBoxClient -d --clipboard
+
+Accessing the clipboard with certain Linux applications
+-------------------------------------------------------
+
+At first, I thought the clipboard is still not working with guest additions
+5.2.44 because the log of VBoxClient showed some 'VERR_NOT_IMPLEMENTED' when
+hitting 'Ctrl-C' in my browser. However, I learned that copying text to the
+clipboard buffer is not necessarily the default in X11 systems.
+For instance, when you copy and paste text by selection and middle mouse
+button, the primary (selection) buffer is used instead.
+
+In xterm you can change this behaviour by activation "Select to Clipboard" in
+the menu accessed via 'Ctrl-Middle Mouse'.
+
+For vim, the clipboard buffer is typically accessible via the '*' register but
+only if vim is compiled with clipboard support.
+You can check this with
+
+! vim --version | grep clipboard
+
+which should report '+clipboard' and '+xterm_clipboard'.
+In my case, I got a '-clipboard' and '-xterm_clipboard', which explained why I
+am not able to copy/paste into the shared clipboard from within vim.
+As I do not want to compile and maintain my own vim package, I opted for another
+pragmatic solution by adding the following keybindings to my i3 window manager:
+
+! bindsym $mod+Ctrl+c exec "xsel -p | xsel -i -b"
+! bindsym $mod+Ctrl+v exec "xsel -b | xsel -i -p"
+
+These bindings move content between the primary selection and clipboard, and
+vice versa. This serves as a workaround for every application that does not
+directly access the clipboard.
+
+Recompiling modules after kernel updates
+----------------------------------------
+
+Note, that you need to rebuild the guest addition modules after a kernel update.
+Instead of mounting the iso and executing the install script, however, you
+simply need to execute the following command:
+
+! sudo rcvboxadd quicksetup
+
+If you want to compile the modules from a different (installed) kernel version
+than currently running, you can append the kernel version to the command.
