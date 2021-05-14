@@ -1,0 +1,82 @@
+
+                        Do you 🖤 your 💻?
+
+Once in a while, I come across a website that uses unicode emoji for
+illustration. Github is one of these that uses such symbols in the sidebar of
+the [https://github.com/notifications - notification view]. However, if you do
+not have a font installed that contains the corresponding glyphs, you will only
+see those beautiful inexpressive boxes ⌷ (or even whitespace). This is the case
+for the falkon browser packaged for Sculpt. Yet, it is pretty easy to augment it
+with emoji support.
+
+By default, the falkon browser is packaged with DejaVu Sans (provided by
+'raw/qt5_dejavusans'), which only contains very few emoji glyphs. To enjoy a
+fully-fledged browsing experience with Sculpt, it must be supplied with an
+emoji-capable font, either as the default font, or as a fallback font. This is
+done in nine easy steps. By the way, this trick is also applicable to other qt5
+apps, e.g. qt5_textedit.
+
+As a prequisite, you need a running virtual machine or another system with zip
+and tar capabilities.
+
+In a *first* step, you download the latest 'raw/qt5_dejavusans' e.g. from
+[https://depot.genode.org/cproc/raw/qt5_dejavusans/ - cproc's depot] and untar
+the archive after verifying the signature. Note, that '{yyyy-mm-dd}'
+is a placeholder for the current version:
+
+! gpg --verify {yyyy-mm-dd}.tar.xz.sig
+! tar xvf {yyyy-mm-dd}.tar.xz
+! cd {yyyy-mm-dd}/
+! tar xvf {qt5_dejavusans.tar}
+
+This will create 'qt/lib/fonts/DejaVuSans.ttf'.
+
+*Second*, download an emoji capable font (e.g. Google Noto) and put the ttf
+file into 'qt/lib/fonts/'. This folder should now contains DejaVuSans.ttf (the
+default font) and you downloaded ttf as a fallback font.
+
+*Third*, create a new tarball 'qt5_dejavusans.tar' from the entire 'qt/' folder
+and make it available to your Sculpt system. If you are working in a virtual
+machine, place it in the shared folder. Otherwise, copy it to a USB stick.
+
+! tar cavf /mnt/shared/qt5_dejavusans.tar qt/
+
+*Fourth*, in your Sculpt system, you must deploy the default falkon package,
+which is available in cproc's depot. (If you are already using falkon, you can
+skip this step.)
+
+! +
+!  -> Depot
+!     -> cproc
+!       -> Tools
+!         -> falkon
+
+*Fifth*, you create a local copy of 'pkg/falkon' and 'raw/qt5_dejavusans' in the
+used file system:
+
+! cd /usb-1-4.3/  # put in the name of the used file system
+! mkdir -p depot/local/pkg
+! mkdir -p depot/local/raw
+! cp -r depot/cproc/pkg/falkon depot/local/pkg/
+! cp -r depot/cproc/raw/qt5_dejavusans depot/local/raw/
+
+*Sixth*, copy the 'qt5_dejavusans.tar' from above into
+'depot/local/raw/qt5_dejavusans/{yyyy-mm-dd}/.
+
+*Seventh*, edit 'depot/local/pkg/falkon/{yyyy-mm-dd}/archives' and change
+'cproc/raw/qt5_dejavusans/{yyyy-mm-dd}' into
+'local/raw/qt5_dejavusans/{yyyy-mm-dd}'.
+
+*Eighth*, create an index file for your local depot and the current Sculpt
+version (e.g. 'depot/local/index/21.03') with the following content:
+
+!<index>
+!
+!  <index name="Tools">
+!    <pkg path="local/pkg/falkon/{yyyy-mm-dd}" info="Falkon Browser with Emoji"/>
+!  </index>
+!
+!</index>
+
+*Ninth and last*, startup the falkon pkg from your local depot and open a test
+page with emoji (e.g. this article).
