@@ -1,0 +1,111 @@
+
+                 Dynamically changing keyboard remapping rules
+
+When setting up
+[http://genodians.org/jschlatow/2021-04-23-start-existing-linux-from-sculpt - my Sculpt-based work environment],
+my intent was to run an unmodified Linux installation as VM in Sculpt. Being
+strongly accustomed to [https://i3wm.org/ - i3wm],
+I quickly noticed the lack of the Windows key that is used for
+controlling the i3 window manager but which is intercepted by Sculpt for the
+same job. A bit reluctant to change my habits and retrain new key combos, I
+needed a better solution. With advice from Norman, I came to a pretty neat
+solution that I would like to share with you.
+
+For starters, let me briefly explain the problem: In Sculpt, the Windows key
+(aka 'KEY_LEFTMETA') is remapped to 'KEY_SCREEN' by default and used as a
+modifier key for controlling the window manager. In consequence, the Windows key
+is not available to any application or VM unless we add another remapping rule
+such as 'KEY_RIGHTCTRL' to 'KEY_LEFTMETA'.
+
+Unwilling to touch the key combos that I have wired already, the engineers mind
+was consulted for a better solution to this _multiplexing problem_. What does an
+engineer think of when spatial multiplexing is exhausted? Right, time
+multiplexing! Or, in Sculpt terms, dynamically toggle the
+'KEY_LEFTMETA' to 'KEY_SCREEN' remapping rule. Of course, this is achievable by
+manually editing the event_filter config, yet, I’d appreciate a little more
+convenience. Maybe introduce a global key to toggle the remapping rule? Norman
+hinted that such a pattern is already employed for numlock.
+
+In the end, I created a 'user_keys' package that solely uses existing components
+(most importantly global_keys_handler and rom_filter) to augment my Sculpt system
+with such a feature. My motivation to share this story is not only because I
+think someone else could find this feature useful but also because it highlights
+the modularity of Genode-based systems such as Sculpt.
+
+Usage
+#####
+
+You can find a ready-to-use 'user_keys' package in my depot (jschlatow) or build
+your own from [https://github.com/genodelabs/genode-world - genode-world].
+
+_Note, in Sculpt 21.03b, you must manually add my depot files. You can take the_
+_download and pubkey files from_
+_[https://github.com/genodelabs/genode/pull/4185 - this pull request]._
+
+When installing and deploying the package, it requests a Gui and a File_system
+session. We must choose _system GUI_ for the Gui session in order to receive
+global key events. The file system is needed to read the files
+'dynamic_remap.config' and 'user_keys.config' as well as to write a 'user.remap'
+file. I use the following chroot launcher to serve '/config/keyboard' to which
+I route the user_keys’s File_system session:
+
+! <launcher pkg="genodelabs/pkg/chroot/2021-02-22">
+!     <route>
+!         <service name="File_system"> <parent label="config"/> </service>
+!     </route>
+!     <config> <default-policy path="/keyboard" writeable="yes"/> </config>
+! </launcher>
+
+Both input files, 'user_keys.config' and 'dynamic_remap.config' must be manually
+created and filled appropriately. The 'user_keys.config' contains the config of
+the global_keys_handler component instantiated by user_keys. Let’s say we want
+to toggle our remapping rules when pressing scrolllock.
+
+! <config>
+!   <bool name="state" initial="yes"/>
+!   <press name="KEY_SCROLLLOCK" bool="state" change="toggle"/>
+!   <report name="state"> <bool name="state"/> </report>
+! </config>
+
+This config instructs the global_keys_handler to generate a report and toggle
+the enabled state whenever 'KEY_SCROLLLOCK' is pressed. The report is consumed
+by user_keys’ rom_filter component, which uses 'dynamic_remap.config' as its
+config. Let’s create a config that sets the mapping of 'KEY_LEFTMETA' to
+'KEY_SCREEN' depending on the reported state:
+
+! <config>
+!   <input name="enabled" rom="state" node="state">
+!     <attribute name="enabled" /> </input>
+!   <output node="remap">
+!     <if>
+!       <has_value input="enabled" value="yes"/>
+!       <then>
+!         <inline>
+!           <key name="KEY_LEFTMETA" to="KEY_SCREEN"/>
+!         </inline>
+!       </then>
+!     </if>
+!   </output>
+! </config>
+
+The output of the rom_filter component is written to the 'user.remap' file of
+the provided file system ('/config/keyboard/user.remap' in my case). At
+this point, we still have to register 'KEY_SCROLLLOCK' as a global key before we
+see any action. This is done in '/config/nitpicker' with the following line:
+
+! <global-key name="KEY_SCROLLLOCK" label="runtime -> user_keys -> user_keys -> input"/>
+
+Finally, we will see the aforementioned 'user.remap' file changing its content
+when we press 'KEY_SCROLLLOCK'. As a final step, we simply include this file in
+our '/config/event_filter':
+
+! <remap>
+! [...]
+! <include rom="keyboard/user.remap"/>
+! [...]
+! </remap>
+
+_Note, if you want to set all configs at startup, you must copy all files,_
+_including 'user.remap', to 'config/<VERSION>/keyboard/' of your used file_
+_system. The 'user.remap' file is important to prevent that the event_filter_
+_tries to include a non-existing ROM._
