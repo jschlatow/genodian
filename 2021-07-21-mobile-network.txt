@@ -73,9 +73,14 @@ deployment, as usual, you will be asked for some routing decisions. Connect
 your Leitzentrale and choose "Local".) For the 'File_system' service, I
 recommend using recall_fs and for 'Report', choose "system reports".
 
+The following figure illustrates the (simplified) integration of this package in Sculpt.
+The package connects to the USB Host Driver and the NIC Router.
+Moreover, the 'File_system' service (not depicted) is required in order to provide the 'mbimcli.config'.
+
+[image mobile_network_simple] Integration of the mobile_network package in Sculpt.
 
 Wait a minute! Why does the package need
-network access at all when it is supposed to provide network access?
+a 'Nic' session at all when it is supposed to provide network access?
 Counterintuitively, the 'Nic' session actually serves as an uplink, i.e. to
 provide the 'nic_router' with network access.
 (I'll provide more details in the last section of this article.)
@@ -167,7 +172,8 @@ piece is hidden in the following message:
 ! [runtime -> nic_router] [default] NIC sessions: 2
 
 The experienced user might already have a clue: The 'mobile_network' was assigned
-to the default domain of our central 'nic_router', yet we wanted to use
+to the default domain of our central 'nic_router', yet, as indicated in the figure
+by the two separate NIC interfaces of the NIC Router, we wanted to use
 'mobile_network' as a (secondary) uplink to which the traffic from the default
 domain is forwarded.
 
@@ -217,9 +223,12 @@ the default 'mbimcli.config':
 ! <config nic_client_enable="yes">
 
 When setting the 'nic_client_enable' attribute to 'no', the
-package will not request a NIC session anymore and solely act as a NIC server.
+package will not request a NIC session anymore and solely act as a NIC server
+as shown in the figure below.
 You can therefore route 'Nic' requests from any other component to the
 'mobile_network' component rather than to Sculpt’s 'nic_router'.
+
+[image mobile_network_direct 90%] Integration of the mobile_network package in Sculpt with nic_client_enable="no"
 
 The *second option* is an option in case you don’t like editing
 '/config/nic_router' to switch between mobile and wired/wireless networking.
@@ -227,10 +236,15 @@ What we can do instead is to let the mbimcli component manage
 '/config/nic_router' directly and route usb_modem_drv’s Uplink session to
 Sculpt’s nic_router. For this purpose, you must install 'usb_modem_drv' and
 'mbimcli' separately. The latter generates a 'nic_router.config' report once a
-connection has been established. In order to write this report to
-'/config/nic_router', you can deploy the 'fs_report' component with the
-following launcher and route mbimcli’s config report service to this
-component.
+connection has been established.
+The resulting setup is shown in the figure below.
+
+[image mbimcli_minimal 70%] Integration of usb_modem_drv and mbimcli in Sculpt.
+
+In order to write make the generated config available to the NIC Router, we only
+need to write it to '/config/nic_router'. To achive this, you can deploy the
+'fs_report' component with the following launcher and route mbimcli’s config
+report service to this component.
 
 ! <launcher pkg="jschlatow/pkg/fs_report/2021-02-22">
 !   <route>
@@ -244,7 +258,7 @@ component.
 Since the sculpt_manager does not handle Uplink requirements, you must also
 create a launcher for 'usb_modem_drv' in order to route the Uplink service:
 
-! <launcher pkg="jschlatow/pkg/usb_modem_drv/2021-06-16-a" priority="-2">
+! <launcher pkg="jschlatow/pkg/usb_modem_drv/2021-07-20" priority="-2">
 !   <route>
 !     <service name="Uplink">
 !       <child name="nic_router"/>
@@ -263,7 +277,7 @@ rewriting and to specify the APN and PIN settings. Label rewriting is required
 for writing the generated config to '/config/nic_router' instead of
 '/config/nic_router.config'.
 
-! <launcher pkg="jschlatow/pkg/mbimcli/2021-07-16" priority="-2">
+! <launcher pkg="jschlatow/pkg/mbimcli/2021-07-20" priority="-2">
 !   <route>
 !     <service name="Terminal">
 !       <child name="usb_modem_drv"/>
@@ -310,7 +324,7 @@ In the previous sections, I intentionally focused on describing the usage and
 omitted the details on the internals of the 'mobile_network' package. As promised,
 I am going to convey the missing pieces in this last section.
 
-[image mobile_network] Integration of the mobile_network package in Sculpt.
+[image mobile_network] Detailed integration of the mobile_network package in Sculpt.
 
 The figure shows the integration of the multi-component 'mobile_network' package
 in Sculpt. The main ingredients of the package are the USB Modem Driver, MBIM

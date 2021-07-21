@@ -2,6 +2,7 @@
 
 	\definecolor{appcolor}        {rgb}{1,1,0.7}
 	\definecolor{servercolor}     {rgb}{0.6,0.7,0.9}
+	\definecolor{multicolor}      {rgb}{0.9,0.7,0.6}
 	\definecolor{defaultcolor}    {rgb}{1,1,1}
 	\definecolor{drivercolor}     {rgb}{0.6,0.7,0.8}
 
@@ -112,7 +113,7 @@
 	\path[treesessionarrow] (modemdrv) -- (usbservice);
 	\path[treesessionarrow] (mbimcli) -- coordinate (mbimprot) (terminalservice);
 	\path[treesessionarrow] (modemdrv.east) -- (uplinkservice);
-	\path[treesessionarrow] (nicrouter.east) -- (downlinkservice);
+	\path[treesessionarrow] (nicrouter.east) -- coordinate (annotation) (downlinkservice);
 	\path[treesessionarrow] (nicdriver) -- (uplinkservice2);
 	\path[treesessionarrow] (usbdrv.south) .. controls +(0,-8ex) and +(0,8ex) .. (platformservice);
 	\path[treesessionarrow] (nicdriver.south) .. controls +(0,-8ex) and +(0,8ex) .. (platformservice);
@@ -128,7 +129,7 @@
 	\node[fit=(vfs),       inner sep=1ex] (vfsoutline)       {};
 
 	\begin{scope}[on background layer]
-		\path[fill=servercolor, fill opacity=0.2, draw=servercolor, rounded corners=5]
+		\path[fill=multicolor, fill opacity=0.2, draw=multicolor, rounded corners=5]
 			(vfsoutline.south west) --
 			(vfsoutline.north west) --
 			(mbimclioutline.north west) --
@@ -138,23 +139,15 @@
 			(vfsoutline.south west) -- cycle;
 	\end{scope}
 
-%	%
-%	% Annotations
-%	%
-%	\tikzstyle{details} = [rectangle callout, draw opacity=0.3, fill=white, fill opacity=0.2,
-%	                       text opacity=0.5, rounded corners=2, draw]
-%
-%	\path (annotation)+(3ex,3ex)
-%		node [details, anchor=south west, callout relative pointer={(-3ex,-3ex)}, align=left] {
-%		IP address\\
-%		Netmask\\
-%		Gateway\\
-%		DNS server
-%		};
-%
-%	\path (mbimprot)+(3ex,0ex)
-%		node [details, minimum height=5ex, anchor=west, callout relative pointer={(-3ex,-0.5ex)}, align=left] {
-%		Modem protocol
-%		};
+	%
+	% Annotations
+	%
+	\tikzstyle{details} = [rectangle callout, draw opacity=0.3, fill=white, fill opacity=0.2,
+	                       text opacity=0.5, rounded corners=2, draw]
+
+	\path (annotation)+(3.5ex,6ex)
+		node [details, anchor=south, callout relative pointer={(-2.5ex, -6ex)}, align=left] {
+		nic\_client\_enable="yes"
+		};
 
 \end{tikzpicture}
