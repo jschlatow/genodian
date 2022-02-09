@@ -22,7 +22,7 @@ In this article, I begin with the foundations about the platform and a guide on
 how to enable the support of a new Zynq-based board in Genode. Note, that
 step-by-step instructions for already supported Zynq boards are readily
 available in the
-[https://github.com/jschlatow/genode-zynq/tree/master/doc - genode-zynq repository].
+[https://github.com/genodelabs/genode-zynq/tree/master/doc - genode-zynq repository].
 
 Zynq 101
 ########
@@ -332,7 +332,7 @@ First, if you haven’t already done so, obtain a clone of the repository within
 the main genode repository, prepare the zynq_uboot port and create a build
 directory:
 
-! genode #> git clone https://github.com/jschlatow/genode-zynq.git repos/zynq
+! genode #> git clone https://github.com/genodelabs/genode-zynq.git repos/zynq
 ! genode #> ./tool/ports/prepare_port zynq_uboot
 ! genode #> ./tool/create_builddir arm_v7a
 
@@ -578,3 +578,6 @@ Next steps
 Now, that we have set up our environment for efficient development, we can
 actually get started with enabling the peripherals. In the next series of this
 article, I am going to shed light on how to use the FPGA.
+
+
+_Edited (2022-02-09): Changed genode-zynq repository URL._
