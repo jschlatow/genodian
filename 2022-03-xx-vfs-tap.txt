@@ -1,9 +1,9 @@
 
            Writing a VFS plugin for network-packet access
 
-Despite Genode already provides a socket API that is backed by two different
+Despite Genode already providing a socket API that is backed by two different
 Virtual File System (VFS) plugins, we have no mechanism for sending/receiving
-raw Ethernet frames via libc. In Linux and FreeBSD, the kernel provides virtual
+raw Ethernet frames via the libc yet. In Linux and FreeBSD, the kernel provides virtual
 TAP devices as an interface for this purpose. We can easily emulate this
 interface by implementing a new VFS plugin. In this article, I will share my
 experiences with this particular plugin and provide some insights in the
@@ -11,7 +11,7 @@ internals of the VFS.
 
 When porting software from the Unix world to Genode, we try to keep
 modifications of the 3rd-party code to a minimum. An essential part of this
-consists in providing the required libraries (e.g. libc, stdcxx). But, even with
+consists in providing the required libraries (e.g., libc, stdcxx). But, even with
 all libraries in place, we also need to bridge the gap between the Unix
 viewpoint of "everything is a file (descriptor)" and the Genode world of session
 interfaces. This is where the VFS comes into play: Genode’s C runtime (libc)
@@ -102,7 +102,7 @@ the corresponding
 
 In Linux, the interface is a bit different. You first open _/dev/net/tun_ and
 create the device by a 'TUNSETIFF' ioctl. This process can be conducted several
-times to create multiple devices. A detailed description can be found int
+times to create multiple devices. A detailed description can be found in
 the
 [https://www.kernel.org/doc/html/latest/networking/tuntap.html - Linux kernel documentation].
 
@@ -125,7 +125,7 @@ The figure above illustrates the plugin structure of the VFS. A plugin provides
 one or multiple files (e.g. _/dev/terminal_) that are incorporated into the
 directory tree of the VFS. The application is then able to perform the standard
 file operations on these files. The VFS plugin typically translates these
-operations into operations on a particular session interface (e.g. Terminal
+operations into operations on a particular session interface (e.g., terminal
 session). The C runtime also emulates ioctl by mapping these to read/write
 accesses of pseudo files (e.g. _/dev/.terminal/…_), see the
 [https://genode.org/documentation/release-notes/20.11#Streamlined_ioctl_handling_in_the_C_runtime___VFS - release notes 20.11]
@@ -170,13 +170,13 @@ Before we start coding, let’s envision how we want to use the plugin:
 
 In the above example, we mount the plugin twice to create _/dev/tap0_ and
 _/dev/tap1_. The _name_ attribute of the _<tap>_ node is mandatory. The plugin
-shall either use a Nic session or an Uplink session to transmit the Ethernet
+shall either use a NIC session or an uplink session to transmit the Ethernet
 frames to a NIC router. This is configured by the optional _mode_ argument. In
-case the plugin acts as an Uplink client, we can specify the default MAC address
+case the plugin acts as an uplink client, we can specify the default MAC address
 to be used. Otherwise, the MAC address is assigned by the NIC router. The _label_
 attribute can be used to distinguish the session requests at the NIC router.
 
-Please note, that I am going to omit most attributes when walking through the
+Please note that I am going to omit most attributes when walking through the
 plugin implementation to keep the presentation rather concise.
 
 Writing the vfs_tap plugin
@@ -188,10 +188,10 @@ than _base_ and _os_, I create it in the _os_ repository.
 
 ! genode/repos/> mkdir -p os/src/lib/vfs/tap
 
-The path suggests that the plugin is supposed to be built as a library. Note,
-that the VFS determines by the type of the XML nodes what plugin libraries to
+The path suggests that the plugin is supposed to be built as a library. Note
+that the type of the XML node is used by the VFS to determine the name of the plugin library to
 probe. More precisely, when adding a _<tap>_ node to the config, the VFS tries
-to load a _vfs_tap.lib.so_. Hence, the makefile goes into
+to load a _vfs_tap.lib.so_. Hence, the build-description file goes into
 _os/lib/mk/vfs_tap.mk_ with the following content:
 
 ! SRC_CC := vfs_tap.cc
@@ -200,7 +200,7 @@ _os/lib/mk/vfs_tap.mk_ with the following content:
 !
 ! SHARED_LIB := yes
 
-Since libraries are only compiled implicitly, i.e. when required as a
+Since libraries are only compiled implicitly, i.e., when required as a
 dependency, we can add a dummy _target.mk_ file to _os/src/lib/tap_, which will
 enable us to call 'make lib/vfs/tap':
 
@@ -242,7 +242,7 @@ Now, let’s add the first few lines to _vfs_tap.cc_:
 From the forward declarations, we can already see that the 'Tap_file_system' is
 composed of three parts: a 'Compound_file_system', a 'Local_factory' and a
 'Data_file_system'. This is a scheme that we commonly apply when writing VFS
-plugins. We will walk through each of those step by step. Note, that we could
+plugins. We will walk through each of those step by step. Note that we could
 also make 'Tap_file_system' a namespace rather than a struct. Though, the subtle
 difference here is that the struct emphasises the inextensibility.
 
@@ -400,8 +400,8 @@ accessor for reading the device name from the _<tap>_ node and the
 !
 !    Vfs::File_system *create(Vfs::Env&, Xml_node node) override
 !    {
-!       if (node.has_type("data"))      return &_data_fs;
-!       if (node.has_type("info"))      return &_info_fs;
+!       if (node.has_type("data")) return &_data_fs;
+!       if (node.has_type("info")) return &_info_fs;
 !
 !       return nullptr;
 !    }
@@ -412,7 +412,7 @@ _data_ or _info_ file system depending on the XML node type. The function is
 called by the 'Dir_file_system' on the XML config defined by our
 'Compound_file_system'.
 
-Note, that mutable parameters (such as the MAC address) are typically provided
+Note that mutable parameters (such as the MAC address) are typically provided
 as additional writeable files along with the info file. For this purpose, you
 can use the 'Value_file_system' template from
 _os/include/vfs/value_file_system.h_ together with 'Genode::Watch_handler' to
@@ -458,7 +458,7 @@ Let’s have a look at the first fragment:
 We skip the details of 'Tap_vfs_handle' for the moment. This fragment is not
 very spectacular, though. We see that we use a 'Genode::Registry' to manage the
 'Tap_vfs_handle's. The 'Single_file_system' constructor takes a node type, a
-name, an access mode and an Xml_node as arguments. For the node type, we can
+name, an access mode and an 'Xml_node' as arguments. For the node type, we can
 choose between 'CONTINUOUS_FILE' and 'TRANSACTIONAL_FILE'. Since a network
 packet is supposed to be written as a whole and not in arbitrary chunks, we must
 choose 'TRANSACTIONAL_FILE' here. The file name is
@@ -512,17 +512,17 @@ The only method of the 'Directory_service' interface not implemented by
 '_single_file' to check whether the correct path was given. Second, we allocate
 a new 'Tap_vfs_handle', which is conveniently put into the '_handle_registry' by
 using the 'Genode::Registered' wrapper. The latter also takes care that the
-handle is removed from the registry on destruction. Note, that we should also
+handle is removed from the registry on destruction. Note that we should also
 add a check here that ensures only a single handle is created since the FreeBSD
-manpages says a TAP device is exclusive-open. I deliberately removed this check
+man pages says that a TAP device is exclusive-open. I deliberately removed this check
 for readability, though.
 
 The read and write operations are part of the 'File_io_service' interface. This
 interface is already implemented by 'Single_file_system', which forwards most
 methods to 'Single_vfs_handle'. Let's thus look at 'Tap_vfs_handle', which
-implements the read and write operations and translates them to the Uplink or
-Nic session interface. I omit the details here though, since it would inflate
-this article a lot. Note, that 'Single_file_system' forwards 'complete_read()'
+implements the read and write operations and translates them to the uplink or
+NIC session interface. I omit the details here though, since it would inflate
+this article a lot. Note that 'Single_file_system' forwards 'complete_read()'
 to the handle's 'read()' method and always returns 'true' for 'queue_read()'.
 
 
@@ -610,7 +610,7 @@ ingredient is inserting the proper result types: While 'READ_OK' and 'WRITE_OK'
 are self-explanatory, there are two common result types for unsuccessful
 reads/writes. On the one hand, 'READ_QUEUED' indicates that a previously queued
 read cannot be completed yet. On the other hand, we may return 'WRITE_ERR_WOULD_BLOCK'
-if, e.g., the submit queue of the Nic/Uplink session's transmit channel is full.
+if, e.g., the submit queue of the NIC/uplink session's transmit channel is full.
 
 
 Libc modifications
@@ -704,11 +704,11 @@ class that overrides the 'value()' method of 'Value_file_system'.
 
 After I managed to compile the vfs_tap library and my test application, and gave
 both a spin, it got stuck on the second 'read()' operation. In other words, the
-packet-available signal from the Uplink session was not received. This left me
+packet-available signal from the uplink session was not received. This left me
 pondering for a moment but, looking at other implementations, I noticed a
 difference: The 'Uplink_client_base' that I copied and modified to implement the
-'Tap_vfs_handler' used 'Signal_handler's whereas other VFS plugins were using
-'Io_signal_handler's. As I learned from the
+'Tap_vfs_handler' used a 'Signal_handler' whereas other VFS plugins were using
+an 'Io_signal_handler'. As I learned from the
 [https://genode.org/documentation/release-notes/17.05#Separation_of_I_O_signals_from_application-level_signals - release notes 17.05],
 the C runtime defers applications signals as long as it remains in a blocking
 function like 'read()'and only receives I/O signals. Hence, using
@@ -717,7 +717,7 @@ function like 'read()'and only receives I/O signals. Hence, using
 The last lesson I had to take was a page fault when closing a file descriptor in
 my test application. I actually needed to dig into this for a while to find the
 culprit. For implementing a 'Tap_vfs_handle' that translates read/write
-operations to an Uplink session, I inherited from 'Uplink_client_base' in
+operations to an uplink session, I inherited from 'Uplink_client_base' in
 addition to 'Single_vfs_handle'. Yet, I had not spent any thought on the order
 of the two base classes. Putting the 'Single_vfs_handle' at second position
 caused the page fault on destruction. Why is that? There are actually multiple
@@ -725,22 +725,8 @@ conditions that led to this. First, the 'Single_file_system' implements the
 'close()' method by destroying the object pointed to by a 'Single_vfs_handle*'.
 When 'Single_vfs_handle' is the secondary base class, however, the pointer does
 not point to the start of the memory block that we allocated when creating our
-'Registered_handle'. Instead, it will have an offset. With a few indirections,
-'Genode::destroy()' passes this address along to 'Genode::Heap::free()'.
-Unfortunately, a regression prompted the implementation to believe the address
-did not belong to a memory block allocated by its local allocator but to an
-entire dataspace. Freeing this dataspace instead unmapped the backing memory of
-other previously allocated objects, ultimately leading to a page fault. By
-fixing the regression, we can turn this into a more graceful error message.
-Putting the 'Single_vfs_handle' at first position eliminates the error
-altogether.
-
-Getting the actual parent address from a pointer of a virtual/polymorphic base
-class turns out to be quite complicated as it is not covered by the standard.
-Since the delete operator is global, we cannot easily use the vtable to walk
-the class hierarchy. GCC, at least, has put a workaround in place that consists
-in calling a so called _deleting destructor_ whenever the delete operator is
-performed on a polymorphic object. The deleting destructor is generated for
-every object with a virtual destructor. This mechanism, however, is apparently
-annulled in Genode since it uses an overloaded version of the delete operator to
-specify the allocator.
+'Registered_handle'. Instead, it will have an offset. Deep down the base
+framework, this corner case was masked and thereby triggered the page fault.
+I spare you the very details though since, with release 22.02, there is a proper
+error message in place. The take-away lesson here is that we need to put
+'Single_vfs_handle' at first position in the list of base classes.
