@@ -1,0 +1,76 @@
+\begin{tikzpicture}
+
+	\definecolor{appcolor}        {rgb}{1,1,0.7}
+	\definecolor{defaultcolor}    {rgb}{1,1,1}
+
+	\tikzstyle{treenode} = [component, path fading=flow fade, align=center,
+	                        rounded corners=1, minimum height=6ex]
+
+	\tikzstyle{service} = [draw=black, draw opacity=0.4, ball color=defaultcolor, fill opacity=0.2,
+	                       rounded corners=0, shape=semicircle,
+	                       inner sep=1.3ex, outer sep=0, above]
+
+	\tikzstyle{appnode}    = [treenode, bottom color=appcolor]
+
+	\tikzstyle{dirs} = [scale=0.6, inner sep=1ex, align=left]
+
+	\tikzstyle{dirbox} = [rounded corners=2, densely dotted, fill=white,
+	                      inner sep=1ex, fill=white, fill opacity=0.2, draw,
+	                      minimum width=20ex]
+
+	%
+	% Components
+	%
+
+	\coordinate (anchor);
+
+	% pkg/drivers_fpga-zynq
+	\node[treenode, minimum width=26ex, at=(anchor)] (fpga) {pkg/drivers\_fpga-zynq};
+	\path (fpga.north) node[service, scale=0.4] (platformservice) {};
+	\path (fpga.north) node[scale=0.7, yshift=-1.5ex] {Platform};
+
+	% driver manager
+	\node[appnode, minimum width=26ex, above right=2ex and 20ex of fpga] (drvmanager)  {Zynq Driver Manager};
+
+	% drivers subsystem
+	\node[treenode, minimum width=26ex, above left=2ex and 20ex of drvmanager] (drivers)  {Drivers Subsystem};
+
+	% file system
+	\node[treenode, minimum width=26ex, minimum height=11ex, below=7ex of fpga] (vfs) {};
+	\path (vfs.north) node[service, scale=0.4] (fsservice) {};
+	\path (vfs.north) node[scale=0.7, yshift=-1.5ex] {File System};
+
+	\path (vfs.south) node[dirbox, yshift=1ex, anchor=south, minimum height=5ex] (vfsdir) { };
+	\node[at=(vfsdir.west), dirs, anchor=west] {
+		\texttt{/config}\\
+		\texttt{/zybo\_z720\_gpio-bitstream.bit}\\
+		\texttt{/zybo\_z720\_rgb-bitstream.bit}
+	};
+
+	\path (vfsdir.north) node[anchor=south] {VFS Server};
+
+	% config / state information flow
+	\tikzstyle{infoflow} = [opacity=0.5,
+	                        decoration={markings,
+	                        mark=between positions 0.03 and 1 step 1ex with {\arrow{latex}}},
+	                        postaction={decorate}]
+
+	\path[infoflow] (fpga.-187)+(-5ex,0) -- node[anchor=east,pos=-0.1] {devices\_manager.config} (fpga.-185);
+	\path[infoflow] (fpga.-173)+(-5ex,0) -- node[anchor=east,pos=-0.1] {policy} (fpga.-175);
+
+	\path[infoflow] (fpga.east)
+		.. controls +(10ex,0) and +(0ex,-10ex) ..
+		   coordinate[pos=0.3] (annotation) node[below] {devices} (drvmanager.south);
+
+	\path[infoflow] (drvmanager.north)
+		.. controls +(0,10ex) and +(10ex,0) ..
+		   coordinate[pos=0.3] (annotation) node[above] {init.config} (drivers.east);
+
+	%
+	% Sessions
+	%
+	\tikzstyle{treesessionarrow} = [arrow, thick]
+	\path[treesessionarrow] (drivers) -- (platformservice);
+	\path[treesessionarrow] (fpga) -- (fsservice);
+
+\end{tikzpicture}
