@@ -279,7 +279,7 @@ The configuration of the trace-recorder component is fully documented in its
 
 As already mentioned, the trace recorder requires write access to a
 'File_system' and to an 'Rtc' service. A ready-to-deploy package for Sculpt
-22.08 is available in my depot. Further examples are found in the run scripts
+22.10 is available in my depot. Further examples are found in the run scripts
 _gems/run/trace_recorder*.run_.
 
 For now, let’s have a look at an example to illustrate how the trace recorder
