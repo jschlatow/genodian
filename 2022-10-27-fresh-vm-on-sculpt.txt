@@ -1,0 +1,246 @@
+
+                How to install a fresh VM on Sculpt
+
+I recently needed to set up a new Linux VM on top of Sculpt. Since I
+encountered a few pitfalls along the way, I'd like to share my experiences and
+provide up-to-date instructions.
+
+For the following guide I assume you have a freshly installed Sculpt 22.10.
+You can either download a
+[https://genode.org/download/sculpt - pre-built Sculpt image] or
+[https://genode.org/documentation/articles/sculpt-22-10#Building_the_boot_image - build your own image].
+
+
+
+Sculpt preparations
+-------------------
+
+There are a few prerequisites for running a VM on Sculpt.
+
+# I need a window manager. The fast track is to deploy the _themed wm_
+  as described in the
+  [https://genode.org/documentation/articles/sculpt-22-10 - Sculpt manual].
+  Alternatively, I can use a
+  [http://genodians.org/nfeske/2020-03-27-window-management - custom deployment].
+  The latter provides the benefit of being able to control and remember the
+  window sizes and the placement of windows on different virtual screens.
+# I need a file system that provides the VM image and configuration.
+  Sculpt 22.10 comes with a launcher called _vm fs_, hence I only need to hit the
+  '+' button and select 'vm fs'. This component will provide the directory
+  _/<used_fs>/vm/debian_ as a distinct file system.
+# The VM is going to request access to a shared file system. Sculpt 22.10
+  is also shipped with a ready-to-use _shared fs_ launcher for this.
+# I am going to deploy the black-hole component. As the name suggests
+  it provides pseudo services for most resources including audio, networking,
+  video capture, USB, and ROM. After enabling the _genodelabs_ depot via
+  _+ → Depot → Selection → genodelabs_, I am able to deploy the black-hole
+  component via _+ → Depot → genodelabs → Tools → black hole_.
+# I will need a fonts file system when installing the downloader. I
+  installed such a file system via _+ → Depot → genodelabs → GUI → fonts fs_.
+  The 'ROM (config)' service must be connected to 'system font configuration'.
+# I also need to deploy a system clock via
+  _+ → Depot → genodelabs → Tools → system clock-pc_. For each required service
+  there is only a single choice.
+# Last, I deployed a _usb devices rom_ component. This component is required to
+  let the VM know about what USB devices to pass through. There is a ready-to-use
+  launcher in Sculpt 22.10 that I may use for this. Yet, if you intend to run
+  multiple VMs, you should replicate this launcher and deploy a separate instance
+  for every VM. Please refer to Martin's instructions on
+  [http://genodians.org/m-stein/2021-04-29-sculpt-21-03-usb-passthough - USB device passthrough]
+  for how to make use of the _usb devices rom_ component.
+
+
+Download an installer (iso)
+---------------------------
+
+Since the early days of Sculpt, we can find a downloader for Debian's
+netinstall iso image in cnuke's depot. The component is called
+_download debian_ and can be deployed by enabling the _cnuke_ depot via
+_+ → Depot → Selection → cnuke_ and installing via
+_+ → Depot → cnuke → Virtual machines -> download debian_. Connect it as follows:
+
+* 'GUI → wm' or 'themed_wm'
+* 'Network → nic router'
+* 'Region maps → custom virtual memory objects'
+* 'File system (target) → vm fs'
+* 'File system (fonts) → fonts fs'
+
+This component will download the netinstall iso image and store it in the
+target file system. The progress is shown in a terminal window for which the
+component requires GUI access and the fonts file system.
+
+
+Start the VM and create a launcher
+----------------------------------
+
+At this point, I can already deploy the _vbox6_ component and create a
+launcher for the new VM. The component is installed via
+_+ → Depot → genodelabs → Virtual machines → vbox6_. Connect it as follows:
+
+* 'File system (vm) → vm fs'
+* 'File system (shared) → shared fs'
+* 'Hardware-based virtualization → virtualization hardware'
+* 'GPU → black hole'
+* 'GUI → wm' or 'themed_wm'
+* 'Network → nic router'
+* 'ROM (capslock) → global capslock state'
+* 'ROM (platform info) → platform information'
+* 'Report (shape) → wm' or 'themed_wm'
+  The shape report is used for providing an application-defined pointer shape.
+  It is intercepted by the window manager, which applies the shape of the
+  currently focussed window.
+* 'Report (clipboard) → wm' or 'themed_wm'
+  The clipboard report provides write access to the clipboard. It is intercepted
+  by the window manager to restrict access to the global clipboard. See
+  [http://genodians.org/nfeske/2019-07-03-copy-paste - Norman's article] for
+  detailed instructions.
+* 'ROM (clipboard) → wm' or 'themed_wm'
+  The clipboard ROM provides read access to the clipboard.
+* 'ROM (mesa gpu drv.lib.so) → black hole'
+* 'Region maps → custom virtual memory objects'
+* 'Real-time clock → system clock-pc'
+* 'ROM (usb devices) → usb devices rom'
+* 'USB → direct USB-device access'
+* 'Audio output → black hole'
+* 'Audio input → black hole'
+
+Note that the GPU support is experimental so that I have routed GPU and the
+mesa ROM to the black-hole component. Please refer to
+[http://genodians.org/ssumpf/2022-04-29-vbox6_3d - this article] on how to use
+3D acceleration in VirtualBox 6.
+
+Once I gave the vbox6 component a spin, it failed with a
+"Runtime error opening machine.vbox6 ..." since I have not populated the
+_vm fs_ with such a file yet.
+
+Anyway, I created a launcher to save the routing decisions. This is
+achieved by copying the "vbox6" start node from _/config/managed/deploy_ into
+a launcher file, e.g. _/config/launcher/vm_.
+Any attribute other than the _pkg_ attribute can be removed from the start node.
+Moreover, the start node must also be changed into a launcher node so that I
+end up with something like this:
+
+! <launcher pkg="genodelabs/pkg/vbox6/...">
+!   <route>
+!     ...
+!   </route>
+! </launcher>
+
+
+Create VM configuration
+-----------------------
+
+As we saw in the previous section, the vbox6 component expects the presence of
+a _machine.vbox6_ file in the _vm fs_. A blueprint is provided in the
+_raw/vbox6_ archive. We can copy the file in the _Inspect_ view as follows:
+
+! inspect:/> cd /<used_fs>
+! inspect:/<used_fs>> cp ./depot/genodelabs/raw/vbox6/<version>/machine.vbox6 ./vm/debian/
+
+Looking into the file, we will find the following lines of interest:
+
+! <MediaRegistry>
+!   <HardDisks>
+!     <HardDisk uuid="{a90a16bf-f724-4321-99df-5498d6e4b796}" location="machine.vdi"
+!               format="VDI" type="Normal"/>
+!   </HardDisks>
+!   <DVDImages>
+!     <Image uuid="{81763434-9a51-49e8-9444-528a5a28c4bc}" location="installer.iso"/>
+!   </DVDImages>
+! </MediaRegistry>
+! ...
+! <StorageControllers>
+!   <StorageController name="SATA" type="AHCI" PortCount="4" ...>
+!     <AttachedDevice type="HardDisk" port="0" device="0">
+!       <Image uuid="{a90a16bf-f724-4321-99df-5498d6e4b796}"/>
+!     </AttachedDevice>
+!     <AttachedDevice passthrough="false" type="DVD" port="3" device="0">
+!       <Image uuid="{81763434-9a51-49e8-9444-528a5a28c4bc}"/>
+!     </AttachedDevice>
+!   </StorageController>
+! </StorageControllers>
+
+This configuration references two files: _installer.iso_ and _machine.vdi_.
+The former I have already downloaded in form of the Debian netinstall image.
+The latter is the image that I am going to use as a virtual disk for the VM.
+
+
+Make changes permanent
+----------------------
+
+Creating the virtual disk image will require rebooting the Sculpt system. To
+spare myself re-doing all the aforementioned steps, I
+[https://genode.org/documentation/articles/sculpt-22-10#Making_customizations_permanent - made the customisations permanent].
+In particular, I executed the following commands in the _Inspect_ view:
+
+! inspect:/> cd /<used_fs>/
+! inspect:/<used_fs>> mkdir -p config/22.10/launcher
+! inspect:/<used_fs>> cp /config/managed/deploy ./config/22.10
+! inspect:/<used_fs>> cp /config/launcher/vm ./config/22.10/launcher
+
+
+Create a VDI image
+------------------
+
+In order to create a _machine.vdi_ image, I had to move to a Linux host. I thus
+powered down my Sculpt system, unplugged the USB stick and plugged it into a
+Linux host which already had VirtualBox installed. I mounted the third partition
+of the USB stick at _/media/SCULPT_ and created a 10000MB image as follows:
+
+! VBoxManage createmedium --filename /media/SCULPT/vm/debian/machine.vdi \
+!                         --size 10000 --variant Fixed
+
+It is also required to adapt the uuid in the _machine.vbox6_ file. You can get
+the uuid of the generated image by the following command:
+
+! VBoxManage showmediuminfo /media/SCULPT/vm/debian/machine.vdi
+
+This is an essential change since I got the following error when I started the
+VM on Sculpt without adapting the uuid:
+
+! [runtime -> vbox6 -> vbox] main     Log created: 2022-10-24T15:02:46.006000000Z
+! [runtime -> vbox6 -> vbox] main     Process ID:  0 (0x0)
+! [runtime -> vbox6 -> vbox] main     Parent PID:  -1 (0xffffffff)
+! [runtime -> vbox6 -> vbox] main     Executable:  /virtualbox6
+! [runtime -> vbox6 -> vbox] Error: machine could not enter running state
+! [runtime -> vbox6 -> vbox] main
+! [runtime -> vbox6 -> vbox] main     !!Assertion Failed!!
+! [runtime -> vbox6 -> vbox] main     Expression: state <= 1 && ( (state == 0 && count == 0)
+!                            || (state == 1 && count < PR_UINT32_MAX/2))
+! [runtime -> vbox6 -> vbox] main     Location  : /data/depot/genodelabs/src/vbox6
+!                            /2022-10-11/src/virtualbox6/VBoxAPIWrap/MachineWrap.cpp(11269)
+!                            virtual nsrefcnt MachineWrap::AddRef()
+! [runtime -> vbox6 -> vbox] main     Stack     :
+! [runtime -> vbox6 -> vbox] main     0000000001958bb3
+! [runtime -> vbox6 -> vbox] main
+! [runtime -> vbox6 -> vbox] 
+! [runtime -> vbox6 -> vbox] !!Assertion Failed!!
+! [runtime -> vbox6 -> vbox] Expression: state <= 1 && ( (state == 0 && count == 0)
+!                            || (state == 1 && count < PR_UINT32_MAX/2))
+! [runtime -> vbox6 -> vbox] Location  : /data/depot/genodelabs/src/vbox6/2022-10-11/
+!                            src/virtualbox6/VBoxAPIWrap/MachineWrap.cpp(11269) 
+!                            virtual nsrefcnt MachineWrap::AddRef()
+! [runtime -> vbox6 -> vbox] Stack     :
+! [runtime -> vbox6 -> vbox] 0000000001958bb3
+! [runtime -> vbox6 -> vbox] 
+! [runtime -> vbox6 -> vbox] main     AddRef: illegal refcnt=3221225469 state=2
+! [runtime -> vbox6 -> vbox] AddRef: illegal refcnt=3221225469 state=2
+! [runtime -> vbox6 -> vbox] Error: Uncaught exception of type 'Genode::Ipc_error'
+! [runtime -> vbox6 -> vbox] Warning: abort called - thread: main
+! [core] Warning: unresolvable exception 3, pd 'init -> runtime -> vbox6 -> vbox',
+!        thread 'ep', cpu 0, ip=0x11bd9bc sp=0x403fe390 bp=0x19ca780 no signal handler
+
+Note that I encountered a similar error when omitting the '--variant Fixed'
+option on image creation.
+
+
+Installation
+------------
+
+The Debian installation is pretty straightforward. However, to enable
+shared-folder and clipboard support, we need to install the guest additions
+of VirtualBox. The following articles may provide help on this matter:
+
+* [https://genodians.org/jws/2019-07-08-download_debian-guest-additions-reloaded]
+* [https://genodians.org/jschlatow/2021-04-30-troublesome-guest-additions]
+
