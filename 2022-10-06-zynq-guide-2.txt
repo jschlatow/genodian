@@ -82,7 +82,7 @@ LED on when button 4 was pressed and off when button 5 was pressed. Since I am
 going to re-use the component later on, it also generates a state report that
 reflects the LED state.
 
-First, I created the file _src/app/zybo_gpio_demo/mio/target.mk_:
+First, I created the file _src/app/zybo_gpio_demo/mio/target.mk_.
 
 ! TARGET := zybo_gpio_demo_mio
 ! SRC_CC := main.cc
@@ -172,6 +172,8 @@ Last, I created the file _run/zybo_gpio_demo.run_:
 !                   [depot_user]/src/zynq_platform_drv \
 !                   [depot_user]/src/zynq_pin_drv \
 !                   [depot_user]/raw/[board]-devices
+!
+! build { app/zybo_gpio_demo }
 !
 ! install_config {
 !     <config>
