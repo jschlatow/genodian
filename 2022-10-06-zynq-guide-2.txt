@@ -405,7 +405,7 @@ For a test-drive of the bitstream, I implemented a _zybo_gpio_demo_sw_
 component which takes control of the switches and the LEDs that are
 placed next to each switch.
 The code is pretty straightforward. You can find it in the
-[https://github.com/genodelabs/genode-zynq/blob/staging/src/app/zybo_gpio_demo/switches/main.cc - genode-zynq repository].
+[https://github.com/genodelabs/genode-zynq/blob/master/src/app/zybo_gpio_demo/switches/main.cc - genode-zynq repository].
 
 I also added the following start node to the _run/zybo_gpio_demo.run_ script:
 
@@ -648,7 +648,7 @@ With the new bitstream at hand, I implemented a 'zybo_gpio_demo_rgb' component
 for testing the MMIO interface. This component uses buttons 0 to 3 to cycle
 through some colours and brightness values of the two RGB LEDs. You can find the
 code in the
-[https://github.com/genodelabs/genode-zynq/blob/staging/src/app/zybo_gpio_demo/rgb/main.cc - genode-zynq repository].
+[https://github.com/genodelabs/genode-zynq/blob/master/src/app/zybo_gpio_demo/rgb/main.cc - genode-zynq repository].
 
 
 I added the following start node to _run/zybo_gpio_demo.run_ script:
@@ -1072,5 +1072,7 @@ Now, when running 'make run/zybo_gpio_demo', I can use buttons 4 and 5 to
 switch between the two bitstreams.
 
 For reproducing the demo, you can find the complete run script and source files
-on the
-[https://github.com/genodelabs/genode-zynq/tree/staging - staging branch of the genode-zynq repository].
+in the
+[https://github.com/genodelabs/genode-zynq - genode-zynq repository].
+
+_Edit 2022-11-01: Updated links to genode-zynq repository (staging -> master)._
