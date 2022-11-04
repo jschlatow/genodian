@@ -1,0 +1,65 @@
+\begin{tikzpicture}
+
+	\definecolor{red}      {rgb}{1,0,0}
+	\definecolor{green}    {rgb}{0,.8,0}
+	\definecolor{blue}     {rgb}{0,0,1}
+
+	\tikzstyle{axis}      = [draw, thick]
+	\tikzstyle{tick}      = [draw, thick]
+	\tikzstyle{plot}      = [draw, very thick]
+
+	\tikzstyle{ticklabel} = [text width=5em, align=center, anchor=north, below, yshift=-1ex]
+	\tikzstyle{ylabel}    = [anchor=east, left, xshift=-1ex]
+	\tikzstyle{arealabel} = [anchor=mid, font=\sffamily\scriptsize]
+
+	\coordinate (anchor);
+	\path (anchor)+(10,0) coordinate (endanchor);
+
+	\draw[axis] (anchor) -- (endanchor);
+	\draw[axis] (anchor) -- +(0,3);
+
+	%%%%%%%%%%%%%%%%%
+	% Axes and Ticks
+	%%%%%%%%%%%%%%%%%
+
+	\draw[axis] (endanchor)++(0,-1ex) -- node[ticklabel] { max\\ cycles }  ++(0,2ex);
+	\draw[tick] (anchor)   ++(3,-1ex) -- node[ticklabel] { red\\ value }   ++(0,1ex);
+	\draw[tick] (anchor)   ++(1,-1ex) -- node[ticklabel] { green\\ value } ++(0,1ex);
+	\draw[tick] (anchor)   ++(5,-1ex) -- node[ticklabel] { blue\\ value }  ++(0,1ex);
+	\draw[tick] (anchor)   ++(0,-1ex) -- node[ticklabel] { 0 }             ++(0,1ex);
+
+	\draw[-latex, dashed] (endanchor) .. controls +(8,-3) and +(-8,-3) .. node [below] { repeat } (anchor);
+
+	%%%%%%%%%
+	% Curves
+	%%%%%%%%%
+
+	\path (anchor)+(0,2.5) coordinate (red);
+	\path (anchor)+(0,1.5) coordinate (green);
+	\path (anchor)+(0, .5) coordinate (blue);
+
+	\path (red)  +(3,-2ex) coordinate (redoff);
+	\path (green)+(1,-2ex) coordinate (greenoff);
+	\path (blue) +(5,-2ex) coordinate (blueoff);
+
+	\draw[color=red,   densely dashed] (anchor)+(3,0) -- (redoff);
+	\draw[color=green, densely dashed] (anchor)+(1,0) -- (greenoff);
+	\draw[color=blue,  densely dashed] (anchor)+(5,0) -- (blueoff);
+
+	\path (red)   node[ylabel,color=red]   { red LED };
+	\path (green) node[ylabel,color=green] { green LED };
+	\path (blue)  node[ylabel,color=blue]  { blue LED };
+
+	\fill[red!20!white]   (red)  +(.1ex,2ex) rectangle +(3,-2ex);
+	\fill[green!20!white] (green)+(.1ex,2ex) rectangle +(1,-2ex);
+	\fill[blue!20!white]  (blue) +(.1ex,2ex) rectangle +(5,-2ex);
+
+	\draw[plot,color=red]   (red)  ++(0,2ex)  -- node [arealabel, color=red,   yshift=-2ex] { on }  ++(3,0)
+	                            -- (redoff)   -- node [arealabel, color=red,   yshift= 2ex] { } ++(7,0);
+	\draw[plot,color=green] (green)++(0,2ex)  -- node [arealabel, color=green, yshift=-2ex] { on }  ++(1,0)
+	                            -- (greenoff) -- node [arealabel, color=green, yshift= 2ex] { } ++(9,0);
+	\draw[plot,color=blue]  (blue) ++(0,2ex)  -- node [arealabel, color=blue,  yshift=-2ex] { on }  ++(5,0)
+	                            -- (blueoff)  -- node [arealabel, color=blue,  yshift= 2ex] { } ++(5,0);
+
+
+\end{tikzpicture}
