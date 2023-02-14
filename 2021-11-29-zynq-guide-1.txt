@@ -302,11 +302,11 @@ addition to his solution, though, was adding the option
 'DEFAULT_ENV_FILE="./env.txt', which enables providing a custom built-in
 configuration. With the following _env.txt_, u-boot first tries to find a
 _uEnv.txt_ file on the SD card and running 'uenvcmd' if it is defined. After
-that, it tries to boot the _uImage_ file from the SD card:
+that, it tries to boot the _/boot/uImage_ file from the SD card:
 
 ! bootcmd=run uenvboot; run sdboot
-! bootenv=uEnv.txt
-! image=uImage
+! bootenv=boot/uEnv.txt
+! image=boot/uImage
 ! loadbootenv_addr=0x30000000
 ! loadbootenv=load mmc 0:1 ${loadbootenv_addr} ${bootenv}
 ! load_addr=0x2000000
@@ -528,7 +528,6 @@ serial console:
 ! RUN_OPT_usrp  = --include image/uboot
 ! RUN_OPT_usrp += --include load/tftp
 ! RUN_OPT_usrp += --load-tftp-base-dir /srv/tftp/usrp
-! RUN_OPT_usrp += --load-tftp-offset-dir /uImage
 ! RUN_OPT_usrp += --load-tftp-absolute
 ! RUN_OPT_usrp += --include log/serial
 ! RUN_OPT_usrp += --log-serial-cmd "picocom -b 115200 /dev/ttyUSB0"
@@ -543,10 +542,10 @@ the uImage from our tftp server:
 !         bootm start && bootm loados && bootm go
 
 Here, you must insert the IP address of your host computer. Also note, that
-'kernel_img' corresponds to the '--load-tftp-base-dir' and
-'--load-tftp-offset-dir' set in our _build.conf_.
+'kernel_img' corresponds to the '--load-tftp-base-dir' set in our _build.conf_.
 
-You can simply copy this _uEnv.txt_ file to the mounted SD card. I like to do
+You can simply copy this _uEnv.txt_ file to the _/boot/_ directory of the mounted
+SD card. I like to do
 this from within u-boot without removing the SD card from the device by running
 the following commands:
 
@@ -557,7 +556,7 @@ the following commands:
 !         18.6 KiB/s
 ! done
 ! Bytes transferred = 154 (9a hex)
-! Zynq> fatwrite mmc 0 0x10000000 uEnv.txt ${filesize}
+! Zynq> fatwrite mmc 0 0x10000000 boot/uEnv.txt ${filesize}
 
 Of course, do not forget to insert the tftp server’s IP address for "x.x.x.x"
 and to make the _uEnv.txt_ available on your tftp server.
@@ -581,3 +580,5 @@ article, I am going to shed light on how to use the FPGA.
 
 
 _Edited (2022-02-09): Changed genode-zynq repository URL._
+
+_Edited (2023-01-19): Changed path of uImage and uEnv.txt on SD card._
