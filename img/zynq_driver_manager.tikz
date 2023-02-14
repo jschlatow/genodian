@@ -55,8 +55,9 @@
 	                        mark=between positions 0.03 and 1 step 1ex with {\arrow{latex}}},
 	                        postaction={decorate}]
 
-	\path[infoflow] (fpga.-187)+(-5ex,0) -- node[anchor=east,pos=-0.1] {devices\_manager.config} (fpga.-185);
-	\path[infoflow] (fpga.-173)+(-5ex,0) -- node[anchor=east,pos=-0.1] {policy} (fpga.-175);
+	\path[infoflow] (fpga.-190)+(-5ex,0) -- node[anchor=east,pos=-0.1] {devices\_manager.config} (fpga.-188);
+	\path[infoflow] (fpga.-180)+(-5ex,0) -- node[anchor=east,pos=-0.1] {policy} (fpga.-180);
+	\path[infoflow] (fpga.-170)+(-5ex,0) -- node[anchor=east,pos=-0.1] {devices} (fpga.-172);
 
 	\path[infoflow] (fpga.east)
 		.. controls +(10ex,0) and +(0ex,-10ex) ..
