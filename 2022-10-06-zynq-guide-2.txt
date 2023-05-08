@@ -947,7 +947,7 @@ I have not provided the bitstream files yet. For a brief test, I
 could simply copy the files into 'build/arm_v7a/bin' and add them to the
 'build_boot_image' line. However, I had another solution in mind that makes use
 of
-[https://github.com/nfeske/goa - Goa].
+[https://github.com/genodelabs/goa - Goa].
 
 
 Building and packaging bitstreams for Genode
@@ -1078,3 +1078,5 @@ in the
 [https://github.com/genodelabs/genode-zynq - genode-zynq repository].
 
 _Edit 2022-11-01: Updated links to genode-zynq repository (staging -> master)._
+
+_Edit 2023-05-08: Updated link to goa repository (moved to genodelabs)._
