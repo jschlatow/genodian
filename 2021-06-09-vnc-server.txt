@@ -32,10 +32,10 @@ speak Unix fluently:
 ! echo "vnc_server: vnc_server.cc" > vnc_server/src/Makefile
 ! echo "vnc_server" > vnc_server/artifacts
 ! echo "jschlatow/api/libvncserver \n\
-! nfeske/api/libc \n\
-! nfeske/api/base \n\
-! nfeske/api/capture_session \n\
-! nfeske/api/event_session" > vnc_server/used_apis
+! genodelabs/api/libc \n\
+! genodelabs/api/base \n\
+! genodelabs/api/capture_session \n\
+! genodelabs/api/event_session" > vnc_server/used_apis
 
 For implementing 'vnc_server.cc', I took the test-capture package as a
 blueprint. This package periodically copies screen data from a Capture session
@@ -285,3 +285,5 @@ Limitations
 * sdl_vnc does not seem to respond to resize events.
 
 Let me know if you discover any further issues.
+
+_Edit 2023-05-08: Updated api sources for goa project (moved from nfeske to genodelabs)._
