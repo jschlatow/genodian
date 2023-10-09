@@ -1,0 +1,145 @@
+
+                   Evaluating browser-performance limitations
+
+I recently collected a bunch of browser benchmark measurements on Sculpt OS to
+get an idea of what factors might be limiting the browsing performance.
+
+For over two years now, I have been using Sculpt OS on a daily basis, yet still
+dependent on a Linux VM. Once in a while, I’m thinking about how to move more
+things out of my VM. For me personally, there are only very few missing pieces
+that impede the complete migration to Sculpt OS (i.e. without running a Linux
+VM) for daily non-development tasks. A performant web browser is, in my opinion,
+the most important ingredient for this.
+
+As a Nextcloud user, I am able to access files, take notes, look into my
+calendar and write emails via the web browser. There are currently two browsers
+that run natively on Sculpt: Falkon and Morph Browser. Yet, accessing Nextcloud
+in particular seems to overstrain these browsers.
+
+A few months ago, I observed this issue for QtWebengine-based browsers even when
+running within a Linux VM (see 
+[https://github.com/genodelabs/genode/issues/4776 - #4776]).
+Back then, I suspected the missing GPU
+acceleration. This week, I was playing with the PinePhone, tried and failed to
+access my Nextcloud and got back to this issue once again.
+
+In an effort of identifying the performance bottleneck, I benchmarked the
+available browsers in different scenarios.
+
+Results on PC
+#############
+
+I ran all benchmark suites from browserbench.org with Falkon and Morph Browser
+on Sculpt 23.04 (Thinkpad T490s and PinePhone). The JetStream benchmark
+evaluates JavaScript performance, MotionMark evaluates graphics performance,
+and Speedometer measures responsiveness of web apps. Note that I had to
+increase the RAM quota for both browsers (I ended up with 4G).
+
+For a baseline, I first ran the benchmark suites on my Thinkpad running
+ArchLinux. I compared Falkon and Firefox running natively and within an Ubuntu
+VM in VirtualBox 7.0.8.
+
+   (baseline)      |  JetStream 2.1 |  MotionMark 1.2 |  Speedometer 2.1
+-------------------------------------------------------------------------
+ Falkon@Linux:     | 116.661        | 453.85 ±2.19%   | 97.8
+-------------------------------------------------------------------------
+ Falkon@Linux-VM:  |  79.994        |   1.09 ±8.3%    | 56.9
+-------------------------------------------------------------------------
+ Firefox@Linux:    | 104.550        | 710.13 ±15.07%  | 100
+-------------------------------------------------------------------------
+ Firefox@Linux-VM: |  64.626        |  69.35 ±10.78   | 75.8
+
+[table baseline] Results on a Thinkpad T490s (running Linux) with native and virtualised Linux
+
+There is a significant degradation for MotionMark when running within a VM. This
+can be explained by the disabled hardware acceleration, yet Firefox seems to do a
+much better job at software rendering.
+
+Next, I booted Sculpt 23.04 and ran the benchmarks on Falkon and Firefox within
+my virtualised ArchLinux.
+
+   (Sculpt 23.04)  |  JetStream 2.1 |  MotionMark 1.2 |  Speedometer 2.1
+-------------------------------------------------------------------------
+ Falkon@Linux-VM:  |  70.500        |  1.09           | 59.7
+-------------------------------------------------------------------------
+ Firefox@Linux-VM: |  60.000        | 20.85 ±240.65%  | 51.2
+
+[table sculpt-vm] Results on a Thinkpad T490s (running Sculpt 23.04) with virtualised Linux
+
+The results are pretty similar to what I've seen when running a Linux-VM on top
+of my natively booted ArchLinux. The only notable difference is that Firefox'
+software rendering seems to be slower with Sculpt and shows a much higher
+variance.
+
+Last, I put the ports of Falkon and Morph (running natively on Sculpt) to a test.
+Note that both ports are also available with jemalloc as an allocator. The port
+of Morph Browser was originally intended for the PinePhone. In contrast to
+Falkon, it is able to utilise the GPU.
+
+
+  (Sculpt 23.04)  |  JetStream 2.1 |  MotionMark 1.2 |  Speedometer 2.1
+-------------------------------------------------------------------------
+ Falkon           |  n/a           |  1.5 ±102.50%   | 47.3
+-----------------------------------------------------------------------
+ Falkon-jemalloc  |  n/a           | 36.35 ±121.57%  | 56.6
+-------------------------------------------------------------------------
+ Morph            |  n/a           |  3.46 ± 161.36  | 62.5
+-------------------------------------------------------------------------
+ Morph-jemalloc   |  n/a           | 96.66 ± 57.26   | 74.4
+
+[table sculpt-vm] Results on a Thinkpad T490s with Falkon and Morph running natively on Sculpt 23.04.
+
+
+Unfortunately, I was not able to acquire results for JetStream 2.1. After
+increasing the RAM quota, the jemalloc variants got stuck at the _segmentation_
+test when attempting invalid writes/reads to/from memory. The other variants
+failed at the _first-inspector-code-load_ with an unresolvable exception.
+
+As expected, Morph performs much better at MotionMark due to the hardware
+acceleration. I was also surprised to see that the jemalloc variants achieved
+much better results. Interestingly, there seems to be a high variance for
+MotionMark on Sculpt. Only looking at the numbers, the best option seems to be
+Morph with jemalloc, which showed the best results for MotionMark and
+Speedometer.
+
+Despite the difference in benchmark scores for these four browser variants, my
+Nextcloud use case feels equally slow/fast on all browsers. Overall, it *is*
+usable but feels a quite unresponsive at certain points.
+
+I am going to regularly update this page with new (Sculpt) releases.
+
+
+Results on PinePhone
+####################
+
+I also tried running the benchmarks on the PinePhone running Sculpt and Morph
+browser. Unfortunately, it was unable to run JetStream and MotionMark.
+
+The browser got stuck when loading the JetStream suite. I haven't looked into
+it yet. Since I had to increase the RAM quota on PC to run JetStream, I suspect
+the browser got out of RAM on the PinePhone as well.
+
+The MotionMark benchmark requires landscape mode which is not (yet) available
+on the PinePhone version of Sculpt OS.
+
+For the Speedometer test, I got a score of 4.888, which seems pretty low.
+However, compared to my (dated) Android 11 phone (a Pixel 1) for which I got a
+score of 17.4, we are not too far off considering that the PinePhone's CPU is
+much slower.
+
+
+Epilogue
+########
+
+There is certainly room for performance improvements of our Falkon and Morph
+browser ports. In particular, the failure to run the JetStream test suite
+indicates that there could be problems on particular websites. I am still
+wondering about what is limiting the responsiveness of Nextcloud.
+
+Note that I do not regard the browser as a silver bullet for migrating to Sculpt.
+Hosting individual web apps in different browser tabs does not feel as secure
+as running separate components. I would still favour using a ported mail client
+on Sculpt rather than a webmail app. Another item on my wish list is a password
+manager. I do not consider a browser-provided password manager as secure since
+I must assume it could be accessed via an exploit. Placing a text file in the
+file vault would be an option but is not very convenient in my opinion.
