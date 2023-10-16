@@ -83,11 +83,11 @@ Falkon, it is able to utilise the GPU.
 -----------------------------------------------------------------------
  Falkon-jemalloc  |  n/a           | 36.35 ±121.57%  | 56.6
 -------------------------------------------------------------------------
- Morph            |  n/a           |  3.46 ± 161.36  | 62.5
+ Morph            |  n/a           |  3.46 ±161.36   | 62.5
 -------------------------------------------------------------------------
- Morph-jemalloc   |  n/a           | 96.66 ± 57.26   | 74.4
+ Morph-jemalloc   |  n/a           | 96.66 ±57.26    | 74.4
 
-[table sculpt-vm] Results on a Thinkpad T490s with Falkon and Morph running natively on Sculpt 23.04.
+[table sculpt-native] Results on a Thinkpad T490s with Falkon and Morph running natively on Sculpt 23.04.
 
 
 Unfortunately, I was not able to acquire results for JetStream 2.1. After
@@ -107,6 +107,38 @@ Nextcloud use case feels equally slow/fast on all browsers. Overall, it *is*
 usable but feels a quite unresponsive at certain points.
 
 I am going to regularly update this page with new (Sculpt) releases.
+
+
+Update 2023-10-16
+=================
+
+When comparing results with the upcoming Sculpt 23.10 release, I noticed that I
+was running the benchmark on Sculpt 23.04 with _intel_hwp_balanced_ settings for
+bender. This setting does not seem to make a difference for the Speedometer
+benchmark, however, it significantly changes the results for MotionMark. I thus
+re-run MotionMark with _intel_hwp_performance_ instead.
+
+
+  (Sculpt 23.04)  |  MotionMark (balanced) |  MotionMark (performance)
+-----------------------------------------------------------------------
+ Falkon           |     1.5 ±102.50%       |  10.85 ±141.76
+-----------------------------------------------------------------------
+ Falkon-jemalloc  |    36.35 ±121.57%      | 135.76 ±21.42
+-----------------------------------------------------------------------
+ Morph            |     3.46 ±161.36       |  24.89 ±58.19
+-----------------------------------------------------------------------
+ Morph-jemalloc   |    96.66 ±57.26        | 100.35 ±23.07
+-----------------------------------------------------------------------
+ Firefox@Linux-VM |    20.85 ±240.65%      | 186.82 ±8.8
+
+[table balanced-performance] Comparison of MotionMark results for intel_hwp_balanced and intel_hwp_performance on Sculpt 23.04.
+
+Setting the CPU into performance state reduces the variance of the scores
+(except for Falkon). In particular, the result for Firefox@Linux-VM is
+remarkable since it is significantly better than what I was able to achieve
+when running the VM on Linux instead of Sculpt. Moreover, it's surprising to
+see that Falkon-jemalloc even achieves a higher score than Morph-jemalloc
+despite the fact that Falkon lacks GPU support.
 
 
 Results on PinePhone
