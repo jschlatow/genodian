@@ -83,9 +83,9 @@ Falkon, it is able to utilise the GPU.
 -----------------------------------------------------------------------
  Falkon-jemalloc  |  n/a           | 36.35 ±121.57%  | 56.6
 -------------------------------------------------------------------------
- Morph            |  n/a           |  3.46 ±161.36   | 62.5
+ Morph            |  n/a           |  3.46 ±161.36%  | 62.5
 -------------------------------------------------------------------------
- Morph-jemalloc   |  n/a           | 96.66 ±57.26    | 74.4
+ Morph-jemalloc   |  n/a           | 96.66 ±57.26%   | 74.4
 
 [table sculpt-native] Results on a Thinkpad T490s with Falkon and Morph running natively on Sculpt 23.04.
 
@@ -121,15 +121,15 @@ re-run MotionMark with _intel_hwp_performance_ instead.
 
   (Sculpt 23.04)  |  MotionMark (balanced) |  MotionMark (performance)
 -----------------------------------------------------------------------
- Falkon           |     1.5 ±102.50%       |  10.85 ±141.76
+ Falkon           |     1.5 ±102.50%       |  10.85 ±141.76%
 -----------------------------------------------------------------------
- Falkon-jemalloc  |    36.35 ±121.57%      | 135.76 ±21.42
+ Falkon-jemalloc  |    36.35 ±121.57%      | 135.76 ±21.42%
 -----------------------------------------------------------------------
- Morph            |     3.46 ±161.36       |  24.89 ±58.19
+ Morph            |     3.46 ±161.36%      |  24.89 ±58.19%
 -----------------------------------------------------------------------
- Morph-jemalloc   |    96.66 ±57.26        | 100.35 ±23.07
+ Morph-jemalloc   |    96.66 ±57.26%       | 100.35 ±23.07%
 -----------------------------------------------------------------------
- Firefox@Linux-VM |    20.85 ±240.65%      | 186.82 ±8.8
+ Firefox@Linux-VM |    20.85 ±240.65%      | 186.82 ±8.8%
 
 [table balanced-performance] Comparison of MotionMark results for intel_hwp_balanced and intel_hwp_performance on Sculpt 23.04.
 
@@ -141,11 +141,42 @@ see that Falkon-jemalloc even achieves a higher score than Morph-jemalloc
 despite the fact that Falkon lacks GPU support.
 
 
+Update 2023-10-26 (Sculpt 23.10)
+================================
+
+With the release of Sculpt 23.10, I re-run the benchmarks on my T490s with the
+intel_hwp_performance settings. I used the 2023-10-19 versions of Falkon and
+Morph.
+
+
+  (Sculpt 23.10)  |  JetStream 2.1 |  MotionMark 1.2 |  Speedometer 2.1
+------------------------------------------------------------------------
+ Falkon@Linux-VM  |  72.500        |  1.09           | 58.7
+------------------------------------------------------------------------
+ Firefox@Linux-VM |  62.500        | 196.96 ±7.04%   | 64.5
+------------------------------------------------------------------------
+ Falkon           |  n/a           |  27.78 ±37.03%  | 48.9
+------------------------------------------------------------------------
+ Falkon-jemalloc  |  n/a           | 148.60 ±12.45%  | 57.6
+------------------------------------------------------------------------
+ Morph            |  n/a           |  46.36 ±12.89%  | 65.3
+------------------------------------------------------------------------
+ Morph-jemalloc   |  n/a           | 152.03 ± 6.81%  | 70.4
+
+[table sculpt-23.10] Results on a Thinkpad T490s running Sculpt 23.10.
+
+Compared to 23.04, the native Falkon and Morph browsers achieve significantly
+better scores. The Speedometer scores are very similar. For the native browsers,
+JetStream seems to be unable to pass the loading phase. With Morph-jemalloc, I
+was able to pass this a few times, yet, as before, the suite failed at the
+_first-inspector-code-load_ test with an unresolvable exception.
+
+
 Results on PinePhone
 ####################
 
-I also tried running the benchmarks on the PinePhone running Sculpt and Morph
-browser. Unfortunately, it was unable to run JetStream and MotionMark.
+I also tried running the benchmarks on the PinePhone running Sculpt 23.04 and
+Morph browser. Unfortunately, it was unable to run JetStream and MotionMark.
 
 The browser got stuck when loading the JetStream suite. I haven't looked into
 it yet. Since I had to increase the RAM quota on PC to run JetStream, I suspect
