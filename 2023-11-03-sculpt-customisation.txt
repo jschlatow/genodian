@@ -1,0 +1,109 @@
+
+                             Sculpt Customisation
+
+The modularisation of Sculpt with release 22.02 enabled us to easily build
+customised Sculpt images. Instead of personalising my Sculpt OS via config
+files on the used file system, I've been managing my customisations in a
+separate repository since then. In this article, I want to share what
+modifications have worked out for me and provide ideas to fellow Genodians.
+
+In order to keep my customisations separate from the main Genode repository, I
+created a separate
+[https://github.com/jschlatow/sculpt - sculpt repo].
+This repo hosts my sculpt customisations as well as additional depot recipes.
+
+Depot Recipes
+#############
+
+Most notably, I added two meta pkg archives: _sculpt_packages_ and
+_goa_distribution_. The former aggregates additional archives I need to publish
+because I'm referencing them in my depot index. The latter aggregates archives
+that I need for my
+[https://github.com/jschlatow/goa-pkgs - Goa projects]
+Moreover, I added a _pkg/vbox6-block-capture_ archive that applies changes to
+the vbox6 runtime so that I am able to run my native Linux installation as a
+VM in Sculpt as I wrote in
+[http://genodians.org/jschlatow/2021-04-23-start-existing-linux-from-sculpt - this article].
+
+Sculpt Modifications
+####################
+
+I based my _jschlatow-pc.sculpt_ on the _default-pc.sculpt_ and added the
+following lines:
+
+! ram_fs:       depot
+! usb:          jschlatow
+! event_filter: jschlatow
+! nitpicker:    jschlatow
+! deploy:       jschlatow-t490s
+
+The ram_fs modification is very useful for testing since it saves downloading
+(and publishing) the referenced depot archives. When clicking the "Use" button
+in Sculpt for the ram_fs, the depot will be populated. One can even copy it
+over to the USB drive or hard disk using the Inspect view.
+
+For the usb config, I added policies for the integrated webcam and LTE modem.
+
+I customised my event_filter config to apply key remappings (CAPSLOCK -> ESC),
+add a KEY_PRINT mapping for triggering screenshots, and integrate
+[http://genodians.org/jschlatow/2021-06-11-user-keys - dynamically changing remapping rules via user_keys].
+
+In the nitpicker config, I added the global keys KEY_PRINT and KEY_SCROLLLOCK
+for the screenshot and user_keys components.
+
+In addition to these customisations, I added a bunch of launchers:
+
+launcher: mobile_network user_keys archlinux bsd_audio_drv usb_webcam mixer
+launcher: battery lock falkon morph falkon-private morph-private
+launcher: screenshot dotfiles_fs unix_shell
+
+These launchers split into three groups. The first group consists of launchers
+that reference pkg archives from genode and genode-world (e.g. mobile_network,
+user_keys, bsd_audio_drv). The second group comprises launchers referencing
+archives from other depot users (e.g. battery by alex-ab, falkon and
+morph-browser by cproc). The third group contains launchers that base on my Goa
+projects (e.g.  screenshot, unix_shell).
+
+Furthermore, I added presets not only for my personalised deploy config but also
+for mobile_browsing, unix_shell, and shutdown:
+
+! presets: jschlatow-t490s mobile_browsing unix_shell shutdown
+
+Mobile_browsing starts a falkon browser connecting to the mobile_network
+component. Unix_shell showcases my version of the system shell with additional
+tools such as vimdiff, grep, find and less. Shutdown uses acpica and
+dynamic_rom to power the system off after a grace time of 10 seconds.
+
+
+Release Workflow
+################
+
+In addition to following the instructions for
+[https://genode.org/documentation/articles/sculpt-23-10#Reproducing_the_system_from_source - building a Sculpt image from source],
+I need to create and publish the following meta archives for every new Sculpt
+release.
+
+! genode/> ./tool/depot/create UPDATE_VERSIONS=1 FORCE=1 REBUILD= \
+!      jschlatow/pkg/x86_64/goa jschlatow/pkg/x86_64/sculpt_packages \
+!      jschlatow/pkg/x86_64/goa_distribution
+! genode/> ./tool/depot/publish_current \
+!      jschlatow/pkg/x86_64/goa jschlatow/pkg/x86_64/sculpt_packages \
+!      jschlatow/pkg/x86_64/goa_distribution
+
+Since I'm using archives that I manage with Goa in my customised Sculpt, I
+must also build and publish my Goa projects. First, I bump the project versions
+as follows:
+
+! goa-pkgs/sculpt> goa bump-version -r
+
+This command recurses into the subdirectories, finds version files and updates
+these to the current date. Next, I publish my depot index that I manage with
+Goa. This automatically builds, exports and publishes the referenced Goa
+projects:
+
+! goa-pkgs/sculpt> goa publish --versions-from-genode-dir ~/repos/genode
+
+Last, I update the versions in the launcher files of the second and third
+launcher group. After this, I am able to build my customised Sculpt image:
+
+! genode> make -C build/x86_64 run/sculpt KERNEL=nova BOARD=pc SCULPT=jschlatow
