@@ -19,7 +19,7 @@ Most notably, I added two meta pkg archives: _sculpt_packages_ and
 _goa_distribution_. The former aggregates additional archives I need to publish
 because I'm referencing them in my depot index. The latter aggregates archives
 that I need for my
-[https://github.com/jschlatow/goa-pkgs - Goa projects]
+[https://github.com/jschlatow/goa-projects - Goa projects]
 Moreover, I added a _pkg/vbox6-block-capture_ archive that applies changes to
 the vbox6 runtime so that I am able to run my native Linux installation as a
 VM in Sculpt as I wrote in
@@ -94,14 +94,14 @@ Since I'm using archives that I manage with Goa in my customised Sculpt, I
 must also build and publish my Goa projects. First, I bump the project versions
 as follows:
 
-! goa-pkgs/sculpt> goa bump-version -r
+! goa-projects/sculpt> goa bump-version -r
 
 This command recurses into the subdirectories, finds version files and updates
 these to the current date. Next, I publish my depot index that I manage with
 Goa. This automatically builds, exports and publishes the referenced Goa
 projects:
 
-! goa-pkgs/sculpt> goa publish --versions-from-genode-dir ~/repos/genode
+! goa-projects/sculpt> goa publish --versions-from-genode-dir ~/repos/genode
 
 Last, I update the versions in the launcher files of the second and third
 launcher group. After this, I am able to build my customised Sculpt image:
