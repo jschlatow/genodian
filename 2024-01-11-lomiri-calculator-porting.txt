@@ -10,7 +10,7 @@ By
 [https://genodians.org/nfeske/2023-05-02-goa-genode-labs - moving the Goa tool under the umbrella of Genode Labs],
 it attained a bunch of new features. I was therefore looking for a simple
 application to write up a new tutorial. As it turned out, the
-[https://genodians.org/ssumpf/2023-05-06-ubunutu_ui- added support for the Ubuntu UI Toolkit]
+[https://genodians.org/ssumpf/2023-05-06-ubunutu_ui - added support for the Ubuntu UI Toolkit]
 (thanks to Sebastian) made it relatively easy to build the
 [https://gitlab.com/ubports/development/apps/lomiri-calculator-app/ - Lomiri Calculator App],
 yet the story still holds a few interesting bits and pieces.
@@ -70,7 +70,7 @@ archives, the project directory is structured following the depot nomenclature:
 
 :src archive:
 
-  A source archive contains to-be-compiled source code. Goa create a source
+  A source archive contains to-be-compiled source code. Goa creates a source
   archive for a project if there exists a _src/_ subdirectory. The directory
   content can either be manually managed or imported as described in the next
   section. Goa also creates a corresponding binary archive containing the build
