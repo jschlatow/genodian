@@ -93,14 +93,16 @@ archives, the project directory is structured following the depot nomenclature:
   a certain scenario. It comprises three files: _archives_, _runtime_ and
   _README_. The _archives_ file lists the names of all required raw, source, or
   package archives. The _runtime_ file describes the required/provided services
-  and the subsystem configuration. Goa allows maintaining multiple package
+  and the subsystem configuration (see 'goa help runtime'). Goa allows
+  maintaining multiple package
   archives in the same project directory. It expects the content of each package
   archive in a _pkg/<name>/_ subdirectory.
 
 :index:
 
   An index describes the available package archives within a depot. Goa creates
-  a depot index if there is an _index_ file present in the project directory.
+  a depot index if there is an _index_ file present in the project directory
+  (see 'goa help index').
 
 
 Importing the source code
@@ -655,3 +657,5 @@ interacting with the GUI. Luckily, I have recently been working on a way to
 execute Goa projects within a testbed on a Sculpt system. This will greatly
 simplify testing on different target platforms, yet this deserves its dedicated
 article.
+
+_Edit (2024-01-25): mention_ 'goa help [runtime|index]'
