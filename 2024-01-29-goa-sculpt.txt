@@ -1,0 +1,143 @@
+
+               Goa - Test running applications on Sculpt
+
+Since its first release, Goa allows test-running applications on the host. We
+recently added an alternative run target to Goa which enables executing a
+Goa application on a Sculpt system.
+
+When developing applications with Goa, the binary-compatibility of Genode
+executables between Linux and microkernels allows for a hassle-free test-running
+on the host system. However, this often involves emulation or "'black-hole'-ing"
+of certain parts such as accessed file systems, ROM modules, or even GPU access.
+Moreover, we need to resort to other means for test-running applications on
+other CPU architectures.
+
+_What if Goa was able to transfer the run directory to a running Sculpt system_
+_and thereby execute a scenario on the remote system instead of the host system?_
+
+Luckily, we already added support for run-stage customisation in release 23.10
+so that implementing such a feature came naturally. In this article, I am going
+to explain the underlying concept and show how it is used in practice.
+
+
+Concept
+-------
+
+Goa places all files required for running a scenario in the _var/run/_ directory.
+By transferring these files to the remote system, we are basically able to launch
+the scenario on that system.  Since we already had a port of _lighttpd_ and Josef
+recently enabled the _mod_webdav_ module, I opted for using HTTP PUT for file
+upload.
+However, in order not to add unnecessary waiting times, we want to omit
+transferring files that are already present, hence we need a smarter
+synchronisation solution. The idea was to leverage the server-provided ETags.
+An HTTP ETag is some kind of server-specific fingerprint of a file. Using the
+last-known ETag of a file, a client is able to conditionally upload a file only
+if it has been changed on the remote side.
+
+I implemented this idea in
+[https://github.com/genodelabs/goa/blob/master/share/goa/lib/sync_http.mk - share/goa/lib/sync_http.mk].
+The script stores the ETags of each file in a temporary directory. It always
+uploads the locally changed files and uses the conditional upload mechanism for
+unchanged files.
+
+In addition to _lighttpd_, the remote Sculpt system runs a sub-init that
+reacts to changes to the _config_ file from the synchronised run directory.
+Once all prerequisites are synchronised, starting a scenario on the remote
+system merely consists in uploading the config file. By deleting the config
+file from the remote system, the scenario is killed.
+
+_But how does Goa acquire the log output from the remotely running sub-system?_
+
+For this, I used the _tcp_terminal_ component to provide the log output via
+telnet. Moreover, log output and reports are stored in the HTTP server's
+directory and are available via directory listing.
+
+I implemented this concept in my _goa_testbed_ project. A ready-to-use archive is
+also available in my depot. With the next Sculpt release, the default Sculpt
+image is going to feature a preset for this as well.
+
+With these ingredients, adding the corresponding run target was pretty
+straightforward. As it turned out, it is much simpler than the default _linux_
+target which needs to instantiate additional components for emulating the
+required services.
+Since the service routings are controlled on the target system when launching
+the Goa testbed, the Goa-generated config merely needs to route all services to
+the parent. See 'goa help targets' for more details.
+
+:Goa testbed project:
+
+  [https://github.com/jschlatow/goa-projects/tree/master/sculpt/goa_testbed]
+
+:Goa testbed preset:
+
+  [https://github.com/genodelabs/genode/issues/5092]
+
+
+Usage
+-----
+
+In order to run a Goa project on a remote Sculpt system, you first need to
+launch _goa_testbed_. This is either done by enabling the corresponding preset
+(coming with the next release) or by installing the package from my depot.
+
+Note that the preset applies label rewriting for the Nic routes as follows
+so that the session requests from _lighttpd_ and _tcp_terminal_ are re-labelled
+"http" resp.  "telnet":
+
+! <service name="Nic" label_prefix="tcp_terminal">
+!   <child name="nic_router" label="telnet"/> </service>
+! <service name="Nic" label_prefix="lighttpd">
+!   <child name="nic_router" label="http"/>   </service>
+! <service name="Nic"> <!-- for test scenario -->
+!   <child name="nic_router"/>                </service>
+
+With these label rewritings, you can add the following domains and policies to
+the Nic router's config (default in the next Sculpt release):
+
+! <policy label="http" domain="http"/>
+! <domain name="http" interface="10.0.80.1/24">
+!   <dhcp-server ip_first="10.0.80.2" ip_last="10.0.80.2" dns_config_from="uplink"/>
+! </domain>
+! <policy label="telnet" domain="telnet"/>
+! <domain name="telnet" interface="10.0.23.1/24">
+!   <dhcp-server ip_first="10.0.23.2" ip_last="10.0.23.2" dns_config_from="uplink"/>
+! </domain>
+
+Also make sure to add corresponding forwarding rules to the _uplink_ domain
+(external access) and/or the _default_ domain (access from within Linux VM):
+
+! <domain ...>
+!   <tcp-forward port="80" domain="http" to="10.0.80.2"/>
+!   <tcp-forward port="23" domain="telnet" to="10.0.23.2"/>
+! </domain>
+
+Having prepared the target system, we can easily test run a Goa scenario by
+adding '--target sculpt' to Goa's command line and by specifying the IP address
+of the target system (see 'goa help targets' for more details).
+Let's try the calculator app from the
+[http://genodians.org/jschlatow/2024-01-11-lomiri-calculator-porting - previous article]:
+
+! calculator> goa run --target sculpt --target-opt-sculpt-server «sculpt-ip»
+! ...
+! uploaded libwindowplugin.lib.so (remote change)
+! ...
+! uploaded config (local change)
+! Trying 10.0.1.1...
+! Connected to 10.0.1.1.
+! Escape character is '^]'.
+! [init -> lomiri-calculator-app] libEGL debug: Native platform type: genode
+! ...
+! Expect: 'interact' received 'strg+c' and was cancelled
+! deleted config
+
+The app magically pops up on the target system and the log output is shown
+on the development system. When hitting 'ctrl+c', the config is deleted from
+the target system, which kills the app.
+
+Note that I like to put the '--target-opt-server-sculpt' argument into my
+_goarc_ file:
+
+! set target_opt(sculpt-server) «sculpt-ip»
+
+*Enjoy!*
