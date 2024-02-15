@@ -410,3 +410,5 @@ failed with a timeout. To leave this state, I had to reboot the laptop.
 Note, that hotplugging the SIM card does not work properly. If you see a
 '<device sim="sim-not-inserted"/>' state but are sure that your SIM card is
 inserted, try rebooting your laptop.
+
+| modem sculpt

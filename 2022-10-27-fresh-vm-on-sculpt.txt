@@ -244,3 +244,4 @@ of VirtualBox. The following articles may provide help on this matter:
 * [https://genodians.org/jws/2019-07-08-download_debian-guest-additions-reloaded]
 * [https://genodians.org/jschlatow/2021-04-30-troublesome-guest-additions]
 
+| vm sculpt

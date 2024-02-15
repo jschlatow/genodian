@@ -448,3 +448,5 @@ Trace recorder resources:
 * [https://github.com/genodelabs/genode/blob/master/repos/gems/src/app/trace_recorder/componentanalysis.xml - componentanalysis.xml]
 * [https://github.com/genodelabs/genode/blob/master/repos/gems/src/app/trace_recorder/checkpointanalysis.xml - checkpoint.xml]
 * [https://github.com/genodelabs/genode/blob/master/repos/gems/src/app/trace_recorder/metadata - metadata]
+
+| trace

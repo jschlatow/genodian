@@ -214,3 +214,5 @@ image file names never change.
 Another observation is that the names of network devices will naturally change
 between the native and virtualised Linux, however, systemd-networkd makes a good
 job with managing different network devices.
+
+| vm linux

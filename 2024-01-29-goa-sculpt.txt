@@ -141,3 +141,5 @@ _goarc_ file:
 ! set target_opt(sculpt-server) «sculpt-ip»
 
 *Enjoy!*
+
+| goa sculpt

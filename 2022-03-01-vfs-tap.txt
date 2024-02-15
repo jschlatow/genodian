@@ -730,3 +730,5 @@ framework, this corner case was masked and thereby triggered the page fault.
 I spare you the very details though since, with release 22.02, there is a proper
 error message in place. The take-away lesson here is that we need to put
 'Single_vfs_handle' at first position in the list of base classes.
+
+| vfs

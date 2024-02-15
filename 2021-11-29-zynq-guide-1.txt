@@ -582,3 +582,5 @@ article, I am going to shed light on how to use the FPGA.
 _Edited (2022-02-09): Changed genode-zynq repository URL._
 
 _Edited (2023-01-19): Changed path of uImage and uEnv.txt on SD card._
+
+| zynq

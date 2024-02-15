@@ -1080,3 +1080,5 @@ in the
 _Edit 2022-11-01: Updated links to genode-zynq repository (staging -> master)._
 
 _Edit 2023-05-08: Updated link to goa repository (moved to genodelabs)._
+
+| zynq goa

@@ -107,3 +107,5 @@ Last, I update the versions in the launcher files of the second and third
 launcher group. After this, I am able to build my customised Sculpt image:
 
 ! genode> make -C build/x86_64 run/sculpt KERNEL=nova BOARD=pc SCULPT=jschlatow
+
+| goa sculpt

@@ -659,3 +659,5 @@ simplify testing on different target platforms, yet this deserves its dedicated
 article. [http://genodians.org/jschlatow/2024-01-29-goa-sculpt - Read on...]
 
 _Edit (2024-01-25): mention_ 'goa help [runtime|index]'
+
+| goa

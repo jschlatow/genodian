@@ -76,3 +76,5 @@ Yikes! What’s that? Apparently, libc tried to redeclare '__size_t'. After a
 little digging, I found out that the 'import-libc.mk' in the Genode repository
 fixes this issue by setting 'CC_OPT += -D__FreeBSD__=12'. By replicating this in
 Goa’s 'quirks.tcl', this issue should be a matter of the past.
+
+| goa sculpt

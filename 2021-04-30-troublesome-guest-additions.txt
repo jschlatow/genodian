@@ -133,3 +133,5 @@ simply need to execute the following command:
 
 If you want to compile the modules from a different (installed) kernel version
 than currently running, you can append the kernel version to the command.
+
+| vm linux
