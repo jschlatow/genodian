@@ -53,7 +53,7 @@ keysyms of all ASCII characters are mapped to their ASCII code. I therefore
 opted for forwarding the ASCII character events as 'KEY_UNKNOWN' with their
 ASCII code as 'Codepoint' argument. For the other standard key events (Enter,
 Space, Shift, cursor movements, etc.), I created a lookup table. The remaining
-keys events are just ignored and not forwarded at all.
+key events are just ignored and not forwarded at all.
 
 The next step was to 'goa build' the component and encounter a few missing
 header files:
@@ -101,12 +101,12 @@ Packaging and publishing
 
 Now, I needed to create a deployable package for the newly developed component.
 As usual, I created the 'pkg/vnc_server' directory and filled the corresponding
-'README', 'archives' and 'runtime' files. For the runtime, I decided to deploy
-the vnc_server in conjunction with the event_filter component. On the one
-hand, the event filter can be used for debugging purposes (using the new '<log>'
-feature of the event filter available in the 21.05 release). On the other hand,
-it allows introducing the common remapping of 'KEY_F12' to 'KEY_DASHBOARD'. For
-better reusability, I externalised the runtime config in 'raw/vnc.config'.
+'README', 'archives' and 'runtime' files. Originally, I deployed the vnc_server
+in conjunction with the event_filter component, because Sculpt only provided
+an unfiltered Event session. Since Sculpt 24.04, however, the events submitted
+by the vnc_server pass Sculpt's central event_filter component so that I removed
+the additional event_filter component from the runtime. For better reusability,
+I externalised the runtime config in 'raw/vnc.config'.
 
 Next, 'goa export' informed me about a missing 'version' and 'LICENSE' before I
 could start with testing the exported package.
@@ -127,96 +127,153 @@ I thus created a new Goa project 'test-vnc_server' that depends on the archive
 'jschlatow/pkg/vnc_server'. In the package’s runtime, the vnc_server is
 deployed as follows:
 
-! <start name="vnc_server" caps="1000">
-!     <binary name="init"/>
-!     <resource name="RAM" quantum="130M"/>
-!     <route>
-!         <service name="ROM" label="config">
-!             <parent label="vnc.config"/>
-!         </service>
-!         <service name="ROM" label="event.config">
-!             <parent label="event.config"/>
-!         </service>
-!         <service name="Nic"> <child name="nic_router"/> </service>
-!         <any-service> <parent/> <any-child/> </any-service>
-!     </route>
-! </start>
+! <runtime ram="250M" caps="2000" binary="init">
+!   <requires>
+!     <!-- [...] see below -->
+!   </requires>
+!
+!   <config>
+!     <parent-provides>
+!        <!-- [...] see below -->
+!     </parent-provides>
+!
+!     <start name="vnc_server" caps="1000">
+!         <binary name="init"/>
+!         <resource name="RAM" quantum="130M"/>
+!         <route>
+!             <service name="ROM" label="config">
+!                 <parent label="vnc.config"/>
+!             </service>
+!             <service name="Nic"> <child name="nic_router"/> </service>
+!             <any-service> <parent/> <any-child/> </any-service>
+!         </route>
+!     </start>
+!
+!     <!-- [...] see below -->
+!
+!   </config>
+! </runtime>
 
-The vnc_server subsystem reuses the 'vnc.config' and 'event.config' provided by
+The vnc_server subsystem reuses the 'vnc.config' provided by
 raw/vnc_server. It also requires a Nic session, a Capture session and an Event
 session. For the latter, I added support for '<capture/>' and '<event/>'
 requirements to Goa. Support for the '<nic/>' requirement was already
 [http://genodians.org/chelmuth/2020-03-16-lets-encrypt - added by chelmuth].
-However, if we look more closely, the vnc_server subsystem uses '<lxip
-dhcp="yes"/>' and thus requires a DHCP server. This could either be installed on
-the Linux host and activated for the tap device, or, I could use the nic_router
-in my runtime. The second choice seemed more appealing, however, required
-another extension of Goa to support '<uplink/>' requirements. With these
-extensions, I can now put the following requirements into my runtime file:
+Since the introduction of the Uplink session, however, Goa needs to add a
+NIC router between the test scenario and the network driver. The default config
+of the NIC router lacks any port forwarding rule, though. In the scope of
+developing [https://genodians.org/jschlatow/2024-01-29-goa-sculpt - Goa Testbed],
+I added support for customising Goa's NIC-router config (see below).
 
-! <requirements>
-!     <capture/>
-!     <event/>
-!     <uplink label="tap_goa"/>
-! </requirements>
+In addition to the vnc_server, I added the textedit component from
+'pkg/qt5_textedit' to have a GUI component that reacts to mouse and keyboard
+events:
 
-The event and capture requirements instruct Goa to instantiate a nitpicker and
-to route the Capture and Event sessions to this instance. For the uplink
-requirement, on the other hand, Goa will instantiate a linux_nic_drv that tries
-to connect to an Uplink session. As for '<nic>' requirements, the label
-"tap_goa" specifies which tap device shall be used by the linux_nic_drv. Since
-the linux_nic_drv acts as an Uplink client (not a server), I must indicate that
-my subsystem provides an Uplink service and add a corresponding routing policy:
+! <runtime ram="250M" caps="2000" binary="init">
+!   <requires>
+!     <!-- [...] see below -->
+!   </requires>
+!
+!   <config>
+!     <parent-provides>
+!        <!-- [...] see below -->
+!     </parent-provides>
+!
+!     <!-- [...] see above -->
+!
+!     <start name="textedit" caps="300">
+!         <resource name="RAM" quantum="100M"/>
+!         <route>
+!             <service name="ROM" label="config">
+!                 <parent label="textedit.config"/>
+!             </service>
+!             <service name="ROM" label="mesa_gpu_drv.lib.so">
+!               <parent label="mesa_gpu_drv.lib.so"/>
+!             </service>
+!             <service name="ROM" label="clipboard">
+!               <parent label="clipboard"/>
+!             </service>
+!             <service name="Report" label="clipboard">
+!               <parent label="clipboard"/>
+!             </service>
+!             <service name="Report" label="shape">
+!               <parent label="shape"/>
+!             </service>
+!             <any-service> <parent/> <any-child/> </any-service>
+!         </route>
+!     </start>
+!   </config>
+! </runtime>
 
-! <service name="Uplink">
-!     <default-policy> <child name="nic_router"/> </default-policy>
-! </service>
+The component reuses the 'textedit.config' from 'pkg/qt5_textedit'. The
+remaining requirements are automatically routed by Goa so that I ended up
+with the following '<requires>' section:
 
-I set up the nic router with a static IP on the uplink domain and the default
-domain. On the default domain, to which the vnc_server subsystem connects, it
-also acts as a DHCP server.
+! <requires>
+!   <capture/>
+!   <event/>
+!   <gui/>
+!   <nic tap_name="tap_goa">
+!     <policy label_suffix="vnc" domain="vnc"/>
+!     <domain name="vnc" interface="10.0.59.1/24">
+!       <dhcp-server ip_first="10.0.59.2" ip_last="10.0.59.2"
+!                    dns_config_from="uplink"/>
+!     </domain>
+!     <tcp-forward port="5900" domain="vnc" to="10.0.59.2"/>
+!   </nic>
+!   <file_system/>
+!   <report label="shape"/>
+!   <report label="clipboard"/>
+!   <rom label="clipboard"/>
+!   <rom label="mesa_gpu_drv.lib.so"/>
+!   <timer/>
+! </requires>
 
-! <start name="nic_router">
-!     <resource name="RAM" quantum="10M"/>
-!     <provides>
-!         <service name="Nic"/>
-!         <service name="Uplink"/>
-!     </provides>
-!     <config>
-!         <default-policy domain="default"/>
-!         <policy label="nic_drv -> " domain="uplink"/>
-!         <domain name="uplink" interface="10.0.11.12/24">
-!             <nat domain="default" tcp-ports="1000" udp-ports="1000" icmp-ports="1000"/>
-!             <tcp-forward port="5900" domain="default" to="10.0.1.2"/>
-!         </domain>
-!         <domain name="default" interface="10.0.1.1/24">
-!             <dhcp-server ip_first="10.0.1.2" ip_last="10.0.1.3"/>
-!             <tcp dst="0.0.0.0/0">
-!                 <permit-any domain="uplink"/>
-!             </tcp>
-!             <udp dst="0.0.0.0/0">
-!                 <permit-any domain="uplink"/>
-!             </udp>
-!             <icmp dst="0.0.0.0/0" domain="uplink"/>
-!         </domain>
-!     </config>
-!     <route>
-!         <any-service> <parent/> <any-child/> </any-service>
-!     </route>
-! </start>
+The event, capture and gui requirements instruct Goa to instantiate a nitpicker
+and to route the Capture, Event and Gui sessions to this instance. For the nic
+requirement, on the other hand, Goa will instantiate a linux_nic_drv and a NIC
+router. The 'tap_name' attribute specifies which tap device shall be used by the
+linux_nic_drv. The content of the '<nic>' node is merged into the NIC router
+config as follows: '<policy>' and '<domain>' nodes are simply added to the
+config whereas '<tcp-forward>' and '<udp-forward>' nodes are added into router's
+uplink domain. You may have a look at 'goa help targets' for more details on how
+Goa routes each requirement.
 
-Last not least, I added the textedit component from 'pkg/qt5_textedit' to have a
-GUI component that reacts to mouse and keyboard events:
+I also needed to add the parent-provided services to the '<parent-provides>'
+section. Note that Goa checks for consistency between the required services of
+a runtime and the '<parent-provides>' section and prints warnings if there
+is a mismatch.
 
-! <start name="textedit">
-!     <resource name="RAM" quantum="100M"/>
-!     <route>
-!         <service name="ROM" label="config">
-!             <parent label="textedit.config"/>
-!         </service>
-!         <any-service> <parent/> <any-child/> </any-service>
-!     </route>
-! </start>
+! <parent-provides>
+!   <service name="ROM"/>
+!   <service name="LOG"/>
+!   <service name="RM"/>
+!   <service name="CPU"/>
+!   <service name="PD"/>
+!   <service name="Gui"/>
+!   <service name="Timer"/>
+!   <service name="Capture"/>
+!   <service name="Event"/>
+!   <service name="Report"/>
+!   <service name="Nic"/>
+!   <service name="File_system"/>
+! </parent-provides>
+
+Before I can 'goa run' the project, I must make sure that tap_goa exists and
+that something responds to DHCP request of the NIC router (for its uplink domain).
+I do this with the following commands:
+
+! sudo ip tuntap add dev tap_goa mode tap user $(whoami);
+! sudo ip addr add 10.0.11.1/24 dev tap_goa;
+! sudo ip link set dev tap_goa up;
+! sudo dnsmasq -C dnsmasq.conf;
+
+Here, my 'dnsmasq.conf' has the following content:
+
+! port=5353
+! interface=tap_goa
+! domain=lan
+! dhcp-range=10.0.11.2,10.0.11.2,12h
 
 Now, I can 'goa run' the project, connect with a VNC client (I used gtk-vnc) to
 '10.0.11.12:0' and remotely control the Qt textedit. Nice! Note, most clients
@@ -229,16 +286,27 @@ Usage
 #####
 
 After finishing the labour, we can now reap the fruit and deploy the vnc_server
-package in Sculpt. The package is available in my personal depot, which you must
-manually add to Sculpt 21.03b. Future Sculpt releases will contain my depot
-files though. Until then, you can take the download and pubkey file from
-[https://github.com/genodelabs/genode/pull/4185 - this pull request].
+package in Sculpt. The package is available in my personal depot index.
 
-Alright, when installing and deploying the vnc_server package, you route the
-Capture and Event sessions to the system GUI for the complete remote-desktop
+When installing and deploying the vnc_server package, you route the
+Capture session to the system GUI for the complete remote-desktop
 experience. The system GUI is the global nitpicker instance. The VNC server will
 thus get the same data as your physical display. As usual, the Network session
-goes to the nic_router (don’t forget to enable your network first).
+goes to the nic_router (don’t forget to enable your network first). The Event
+session can be routed to the filtered input events (i.e. the central event_filter
+component) or (if installed) the black_hole component if you want to have a
+view-only VNC server.
+
+Note that you need to add a policy to '/config/event_filter'. If the file is
+not present, copy '/config/managed/event_filter' to '/config/event_filter' to
+create the self-managed event-filter config. Then, add a '<policy>' node to
+the bottom of the config where the other '<policy>' nodes are:
+
+! <policy label="runtime -> vnc_server -> " input="vnc"/>
+
+This instructs the event_filter component to accept input events from the VNC
+server. You also need to add merge these input events into the output, simply
+by adding '<input name="vnc"/>' where the other '<input>' nodes are located.
 
 Moreover, to expose the VNC server to the network, we must forward the TCP port
 5900 from the uplink domain to the vnc_server component. For this purpose,
@@ -253,7 +321,7 @@ Memorise the IP address, copy '/config/managed/nic_router' to
 
 That’s it. If you set thing up correctly, you should be able to connect with
 any VNC client to your Sculpt system. I successfully tested gtk-vnc 1.2.0 and
-Alex’ 'sdl_vnc' package.
+the 'sdl_vnc' component, which is also available in my depot.
 
 [image screenshot_vnc] Screenshot showing an sdl_vnc client connecting to
   another Sculpt system.
@@ -267,12 +335,9 @@ Another neat feature is that you can only serve a section of the actual screen
 via VNC by setting the 'xpos', 'ypos', 'width' and 'height' arguments the
 'vnc.config' from 'jschlatow/raw/vnc_server', e.g.:
 
-! <start name="vnc_server">
+! <config period_ms="40" width="800" height="600" xpos="100" ypos="100">
 !     [...]
-!     <config period_ms="40" width="800" height="600" xpos="100" ypos="100">
-!         [...]
-!     </config>
-! </start>
+! </config>
 
 Have a look at [http://genodians.org/skalk/2019-03-18-hybrid-packages -
 Stefan’s guide] on how to modify existing packages.
@@ -288,4 +353,6 @@ Let me know if you discover any further issues.
 
 _Edit 2023-05-08: Updated api sources for goa project (moved from nfeske to genodelabs)._
 
-| goa
+_Edit 2024-05-06: Adapted to Sculpt 24.04._
+
+| goa vnc
