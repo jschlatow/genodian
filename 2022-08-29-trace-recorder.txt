@@ -280,7 +280,9 @@ The configuration of the trace-recorder component is fully documented in its
 As already mentioned, the trace recorder requires write access to a
 'File_system' and to an 'Rtc' service. A ready-to-deploy package for Sculpt
 22.10 is available in my depot. Further examples are found in the run scripts
-_gems/run/trace_recorder*.run_.
+_gems/run/trace_recorder*.run_. Note that, since
+[https://genode.org/documentation/release-notes/24.02#De-privileged_tracing - release 24.02],
+the TRACE session has a de-privileged scope by default.
 
 For now, let’s have a look at an example to illustrate how the trace recorder
 is configured:
@@ -434,6 +436,7 @@ Release notes:
 * [https://genode.org/documentation/release-notes/18.02#New_trace-logging_component - Release Notes 18.02: trace logger]
 * [https://genode.org/documentation/release-notes/19.08#Tracing - Release Notes 19.08: VFS trace plugin]
 * [https://genode.org/documentation/release-notes/20.05#Redirection_of_LOG_output_to_TRACE_events - Release Notes 20.05: redirection of LOG output to TRACE events]
+* [https://genode.org/documentation/release-notes/24.02#De-privileged_tracing - Release Notes 24.04: De-privileged tracing]
 
 
 READMEs and documentation:
@@ -448,5 +451,7 @@ Trace recorder resources:
 * [https://github.com/genodelabs/genode/blob/master/repos/gems/src/app/trace_recorder/componentanalysis.xml - componentanalysis.xml]
 * [https://github.com/genodelabs/genode/blob/master/repos/gems/src/app/trace_recorder/checkpointanalysis.xml - checkpoint.xml]
 * [https://github.com/genodelabs/genode/blob/master/repos/gems/src/app/trace_recorder/metadata - metadata]
+
+_Edit 2024-05-06: Add comment about de-privileged TRACE session_
 
 | trace
