@@ -138,7 +138,6 @@ deployed as follows:
 !     </parent-provides>
 !
 !     <start name="vnc_server" caps="1000">
-!         <binary name="init"/>
 !         <resource name="RAM" quantum="130M"/>
 !         <route>
 !             <service name="ROM" label="config">
@@ -154,7 +153,7 @@ deployed as follows:
 !   </config>
 ! </runtime>
 
-The vnc_server subsystem reuses the 'vnc.config' provided by
+The vnc_server start node reuses the 'vnc.config' provided by
 raw/vnc_server. It also requires a Nic session, a Capture session and an Event
 session. For the latter, I added support for '<capture/>' and '<event/>'
 requirements to Goa. Support for the '<nic/>' requirement was already
