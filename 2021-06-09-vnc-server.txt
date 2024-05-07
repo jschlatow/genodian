@@ -331,15 +331,16 @@ since nitpicker will keep the bounding box of all Capture client buffers as the
 joint screen size.
 
 Another neat feature is that you can only serve a section of the actual screen
-via VNC by setting the 'xpos', 'ypos', 'width' and 'height' arguments the
+via VNC by setting the 'xpos', 'ypos', 'width' and 'height' arguments in the
 'vnc.config' from 'jschlatow/raw/vnc_server', e.g.:
 
 ! <config period_ms="40" width="800" height="600" xpos="100" ypos="100">
 !     [...]
 ! </config>
 
-Have a look at [http://genodians.org/skalk/2019-03-18-hybrid-packages -
-Stefan’s guide] on how to modify existing packages.
+Have a look at
+[http://genodians.org/skalk/2019-03-18-hybrid-packages - Stefan’s guide]
+on how to modify existing packages.
 
 Limitations
 ###########
