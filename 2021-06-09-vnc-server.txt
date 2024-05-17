@@ -294,14 +294,14 @@ thus get the same data as your physical display. As usual, the Network session
 goes to the nic_router (don’t forget to enable your network first). The Event
 session can be routed to the filtered input events (i.e. the central event_filter
 component) or (if installed) the black_hole component if you want to have a
-view-only VNC server.
+view-only VNC server. As a file system, you best use a recall_fs.
 
 Note that you need to add a policy to '/config/event_filter'. If the file is
 not present, copy '/config/managed/event_filter' to '/config/event_filter' to
 create the self-managed event-filter config. Then, add a '<policy>' node to
 the bottom of the config where the other '<policy>' nodes are:
 
-! <policy label="runtime -> vnc_server -> " input="vnc"/>
+! <policy label_prefix="runtime -> vnc_server -> " input="vnc"/>
 
 This instructs the event_filter component to accept input events from the VNC
 server. You also need to add merge these input events into the output, simply
@@ -332,27 +332,29 @@ joint screen size.
 
 Another neat feature is that you can only serve a section of the actual screen
 via VNC by setting the 'xpos', 'ypos', 'width' and 'height' arguments in the
-'vnc.config' from 'jschlatow/raw/vnc_server', e.g.:
+_vnc.config_, which is found in the file system used by vnc_server package.
 
 ! <config period_ms="40" width="800" height="600" xpos="100" ypos="100">
 !     [...]
 ! </config>
 
-Have a look at
-[http://genodians.org/skalk/2019-03-18-hybrid-packages - Stefan’s guide]
-on how to modify existing packages.
+You may also enable password protection by adding the 'requires_password="yes"'
+attribute to the config and by creating a _passwd_ file containing the plaintext
+password.
 
 Limitations
 ###########
 
-* The server only accepts a single client connection at a time. In case the client has not disconnected properly, it may therefore occur that you must restart the server.
-* Scroll events are not (yet) forwarded by the VNC server.
 * sdl_vnc does not seem to respond to resize events.
+* The VNC server only supports a single connection at a time. If another client
+  tries to connect, the current client will be disconnected.
 
 Let me know if you discover any further issues.
 
 _Edit 2023-05-08: Updated api sources for goa project (moved from nfeske to genodelabs)._
 
 _Edit 2024-05-06: Adapted to Sculpt 24.04._
+
+_Edit 2024-05-17: Read vnc.config from file system; added scroll events and password support. _
 
 | goa vnc
