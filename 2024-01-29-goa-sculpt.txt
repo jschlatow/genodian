@@ -54,8 +54,8 @@ telnet. Moreover, log output and reports are stored in the HTTP server's
 directory and are available via directory listing.
 
 I implemented this concept in my _goa_testbed_ project. A ready-to-use archive is
-also available in my depot. With the next Sculpt release, the default Sculpt
-image is going to feature a preset for this as well.
+available in my depot. The official Sculpt 24.04 image also comes with a
+_goa testbed_ preset.
 
 With these ingredients, adding the corresponding run target was pretty
 straightforward. As it turned out, it is much simpler than the default _linux_
@@ -71,7 +71,7 @@ the parent. See 'goa help targets' for more details.
 
 :Goa testbed preset:
 
-  [https://github.com/genodelabs/genode/issues/5092]
+  [https://github.com/genodelabs/genode/blob/master/repos/gems/sculpt/deploy/goa_testbed]
 
 
 Usage
@@ -79,7 +79,7 @@ Usage
 
 In order to run a Goa project on a remote Sculpt system, you first need to
 launch _goa_testbed_. This is either done by enabling the corresponding preset
-(coming with the next release) or by installing the package from my depot.
+(since Sculpt 24.04) or by installing the package from my depot.
 
 Note that the preset applies label rewriting for the Nic routes as follows
 so that the session requests from _lighttpd_ and _tcp_terminal_ are re-labelled
@@ -93,7 +93,7 @@ so that the session requests from _lighttpd_ and _tcp_terminal_ are re-labelled
 !   <child name="nic_router"/>                </service>
 
 With these label rewritings, you can add the following domains and policies to
-the Nic router's config (default in the next Sculpt release):
+the Nic router's config (default since Sculpt 24.04):
 
 ! <policy label="http" domain="http"/>
 ! <domain name="http" interface="10.0.80.1/24">
@@ -141,5 +141,7 @@ _goarc_ file:
 ! set target_opt(sculpt-server) «sculpt-ip»
 
 *Enjoy!*
+
+_Edit 2024-06-04: Refer to preset in Sculpt 24.04._
 
 | goa sculpt
