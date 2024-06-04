@@ -1,0 +1,115 @@
+
+           Goa - Using a headless Sculpt as a remote test target
+
+Goa's ability to run applications on a remote Sculpt system comes in handy
+for testing. However, switching between keyboards to control the remote-running
+application is a tiny inconvenience. My recent experiments with Sculpt on a
+ZimaBlade, which has no built-in display, thus motivated me to experiment
+with solutions for Sculpt as a truly remote test target.
+
+The current release of Sculpt OS (24.04) comes with an integrated preset for
+turning the system into a
+[https://genode.org/documentation/release-notes/24.02#Sculpt_OS_as_remote_test_target_for_the_Goa_SDK - remote test target]
+for Goa. This allows running a Goa
+scenario on a remote Sculpt system. Goa automatically uploads the required files
+to the test system and establishes a telnet connection in order to extract the
+log output. However, GUI interaction still has to be done on the target system.
+
+:Goa - Test running applications on Sculpt:
+
+  [https://genodians.org/jschlatow/2024-01-29-goa-sculpt]
+
+Experimenting with Sculpt on a ZimaBlade single-board computer therefore
+motivated me to combine this with my VNC server. The latter was a bit dated,
+thus I updated our port of libvnc and took the opportunity to add the missing
+mouse-wheel support and (optional) password authentication. I've updated
+the corresponding article (linked below) accordingly.
+
+:Remote desktop solution for Sculpt via VNC:
+
+  [https://genodians.org/jschlatow/2021-06-09-vnc-server]
+
+With all ingredients at hand, I came up with two options for turning Sculpt
+into a truly remote test target.
+
+
+Option 1: Combine VNC server with Goa testbed
+---------------------------------------------
+
+As a first and straightforward option, I switched to the _goa_testbed_ preset
+and started a Sculpt-global VNC server following
+[http://genodians.org/jschlatow/2021-06-09-vnc-server#Usage - these instructions].
+
+This option provides access to the complete Sculpt OS including the
+Leitzentrale UI and is great if you want to change settings or restart the
+Goa testbed remotely.
+
+
+Option 2: Integrate VNC server into Goa testbed
+-----------------------------------------------
+
+For this option, I created a separate depot package called _goa_testbed_vnc_.
+The package runtime bundles the goa_testbed with a separate Nitpicker and a VNC
+server as illustrated in the figure below. GUI applications run in this testbed
+will not be shown in the Sculpt UI. Instead, they are only visible via the VNC
+server. The additional event-filter component is required to translate
+non-printable key symbols into ASCII codes or into function-key unicodes.
+Printable characters are already submitted as unicodes by the VNC server. The
+package is available in
+[https://depot.genode.org/jschlatow/pkg/goa_testbed_vnc/ - my depot].
+
+[image goa_testbed_vnc]
+
+In order to use this package, I first create a copy of
+_/config/presets/goa_testbed_. In this copy, I replace
+'jschlatow/pkg/goa_testbed/...' by 'jschlatow/pkg/goa_testbed_vnc/2024-05-31'.
+Furthermore, I add the following route to the _goa_testbed_ child:
+
+! <service name="Nic" label_prefix="vnc">
+!   <child name="nic_router" label="vnc"/>
+! </service>
+
+This route makes sure that the Nic session used by the internal VNC server
+appears with the label "vnc" at the Nic router. With this route in place, I
+can add the following to _/config/nic_router_ in order to assign  a fixed IP
+address to the VNC server and to add a corresponding port-forwarding rule.
+
+! <domain name="uplink">
+!   [...]
+!   <tcp-forward port="5900" domain="vnc" to="10.0.59.2"/>
+! </domain>
+!
+! <policy label="vnc" domain="vnc"/>
+! <domain name="vnc" interface="10.0.59.1/24">
+!   <dhcp-server ip_first="10.0.59.2" ip_last="10.0.59.2" dns_config_from="uplink"/>
+! </domain>
+
+Since _goa_testbed_vnc_ uses its own nitpicker instance, I can also remove all
+routes to the 'wm' child as well as the start nodes for 'window_layouter', 'wm',
+and 'themed_decorator'. The resulting preset is available in my sculpt
+repository.
+
+:Goa testbed vnc preset:
+
+  [https://github.com/jschlatow/sculpt/blob/master/sculpt/deploy/goa_testbed_vnc]
+
+
+Using Goa with a VNC client
+---------------------------
+
+For both options, I added the '--target-opt-sculpt-cmd' command-line argument
+to Goa. This argument allows specifying an arbitrary command that is spawned
+just before Goa establishes the Telnet connection to the remote system. This
+can be utilised to automatically spawn a VNC client with
+'goa run --target sculpt'. The VNC client is automatically closed when the
+user closes the Telnet connection with 'ctrl+c'.
+
+Note that the command is supplied with the 'SERVER' environment variable set
+to the value of '--target-opt-sculpt-server' (see 'goa help targets'). With
+this option, I am able to run a Goa scenario on the remote system as follows:
+
+! goa run --target sculpt \
+!   --target-opt-sculpt-server «sculpt-ip» \
+!   --target-opt-sculpt-cmd 'gvncviewer $SERVER:0'
+
+| goa sculpt vnc

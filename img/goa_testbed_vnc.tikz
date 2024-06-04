@@ -1,0 +1,70 @@
+\begin{tikzpicture}
+
+	\definecolor{appcolor}        {rgb}{1,1,0.7}
+	\definecolor{defaultcolor}    {rgb}{1,1,1}
+	\definecolor{servercolor}     {rgb}{0.9,0.5,0.4}
+
+	\tikzstyle{treenode} = [component, path fading=flow fade, align=center,
+	                        rounded corners=1, minimum height=6ex]
+
+	\tikzstyle{service} = [draw=black, draw opacity=0.4, ball color=defaultcolor, fill opacity=0.2,
+	                       rounded corners=0, shape=semicircle,
+	                       inner sep=1.3ex, outer sep=0, above]
+
+	\tikzstyle{appnode}     = [treenode, bottom color=appcolor,     minimum width=18ex]
+	\tikzstyle{servernode}  = [treenode, bottom color=servercolor,  minimum width=18ex]
+	\tikzstyle{defaultnode} = [treenode, bottom color=defaultcolor, minimum width=18ex]
+
+	\tikzstyle{treesessionarrow} = [arrow, thick]
+	\tikzstyle{parentchildarrow} = [arrow, thick,, opacity=0.2]
+
+
+	%
+	% Components
+	%
+
+	% init
+	\node[defaultnode] (init) {Init\\{\tiny (Goa Testbed VNC)}};
+
+	% nitpicker
+	\node[servernode, below=14ex of init, align=center, xshift=10ex]
+	     (nitpicker) {Nitpicker};
+
+	\path (nitpicker.north) node[service, scale=0.4, xshift=14ex] (nitpickergui) {};
+	\path (nitpickergui) node[scale=0.7, yshift=-2ex] {GUI};
+
+	\path (nitpicker.north) node[service, scale=0.4, xshift=-6ex] (nitpickercapture) {};
+	\path (nitpickercapture) node[scale=0.7, yshift=-2.2ex] {Capture};
+
+	\path (nitpicker.north) node[service, scale=0.4, xshift=-18ex] (nitpickerevent) {};
+	\path (nitpickerevent) node[scale=0.7, yshift=-2ex] {Event};
+
+	% event filter
+	\node[servernode, below=14ex of init, align=center, xshift=-10ex]
+	     (eventfilter) {Event Filter};
+
+	\path (eventfilter.north) node[service, scale=0.4, xshift=-9ex] (eventfilterev) {};
+	\path (eventfilterev) node[scale=0.7, yshift=-2ex] {Event};
+
+	% vnc server
+	\node[appnode, left=2ex of eventfilter, align=center]
+	     (vnc) {VNC Server};
+
+	% sub-init
+	\node[appnode, right=2ex of nitpicker, align=center]
+	     (testbed) {Goa Testbed};
+
+	% parent-child relation
+	\path[parentchildarrow] (init) -- (nitpicker.70);
+	\path[parentchildarrow] (init) -- (eventfilter.110);
+	\path[parentchildarrow] (init) -- (vnc.50);
+	\path[parentchildarrow] (init) -- (testbed.130);
+
+	% sessions
+	\path (eventfilter.45) edge [treesessionarrow, bend left=60]  (nitpickerevent);
+	\path (vnc.70)         edge [treesessionarrow, bend left=60]  (eventfilterev);
+	\path (vnc.110)        edge [treesessionarrow, bend left=60]  (nitpickercapture);
+	\path (testbed.north)  edge [treesessionarrow, bend right=60] (nitpickergui);
+
+\end{tikzpicture}
+
