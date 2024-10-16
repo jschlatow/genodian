@@ -211,6 +211,53 @@ Sculpt 23.10 to 24.04. For the native browsers, JetStream is still unable to
 pass the loading phase. The new Speedometer seems to be incompatible with our
 version of QtWebEngines; it only completes in Firefox.
 
+Update 2024-10-16 (Sculpt 24.10)
+================================
+
+With the release of Sculpt 24.10, I re-run the benchmarks on my T490s with the
+intel_hwp_performance settings. I used the 2024-10-08 versions of Falkon and
+Morph Browser. Within my Linux VM, I am using Falkon 24.08.0 with QtWebEngine
+6.7.2 and Firefox 129.0.2. The VM runs Linux kernel 6.6.47 (Archlinux linux-lts).
+
+I had to re-run the benchmarks on 24.04 due to version updates of MotionMark and
+JetStream. I also noticed that the frame-rate detection
+of MotionMark changed. For all scenarios except for Falkon under Linux,
+MotionMark detected 60fps. For Falkon under Linux, it detected 45fps.
+
+Note that JetStream and Speedometer are still incompatible with our version of
+QtWebEngine. This will be addressed by our ongoing upgrade from Qt5 to Qt6.
+
+
+  (Sculpt 24.04)  |  JetStream 2.2 |  MotionMark 1.3.1 |  Speedometer 3.0
+--------------------------------------------------------------------------
+ Falkon@Linux-VM  |  100.121       |  1.27  ±75.32%    | 4.26 ± 0.20
+--------------------------------------------------------------------------
+ Firefox@Linux-VM |  79.172        | 273.38 ± 7.78%    | 6.24 ± 0.25
+--------------------------------------------------------------------------
+ Falkon-jemalloc  |  n/a           | 163.97 ±20.03%    | n/a
+--------------------------------------------------------------------------
+ Falkon           |  n/a           |  33.43 ±28.00%    | n/a
+--------------------------------------------------------------------------
+ Morph-jemalloc   |  n/a           | 173.27 ±11.18%    | n/a
+
+[table sculpt-24.04-new] New results on a Thinkpad T490s running Sculpt 24.04
+
+
+  (Sculpt 24.10)  |  JetStream 2.2 |  MotionMark 1.3.1 |  Speedometer 3.0
+--------------------------------------------------------------------------
+ Falkon@Linux-VM  |  95.175        |  2.04  ±50.61%    | 4.00 ± 0.08
+--------------------------------------------------------------------------
+ Firefox@Linux-VM |  71.750        | 224.06 ± 9.98%    | 5.86 ± 0.22
+--------------------------------------------------------------------------
+ Falkon-jemalloc  |  n/a           | 152.82 ±20.52%    | n/a
+--------------------------------------------------------------------------
+ Falkon           |  n/a           |  30.80 ±35.86%    | n/a
+--------------------------------------------------------------------------
+ Morph-jemalloc   |  n/a           | 136.12 ±14.29%    | n/a
+
+[table sculpt-24.10] Results on a Thinkpad T490s running Sculpt 24.10
+
+
 Results on PinePhone
 ####################
 
