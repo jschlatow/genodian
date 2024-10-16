@@ -146,19 +146,28 @@ a few clock widgets with different time zones:
 !   <vfs> <dir name="dev"> <log/> <rtc/> </dir> </vfs>
 !   <libc stdout="/dev/log" rtc="/dev/rtc"/>
 !
-!   <label>Berlin</label>
-!   <clock/>
-!   <calendar/>
+!   <track>
+!     <label>Berlin</label>
+!     <clock/>
+!     <calendar/>
+!   </track>
 !
-!   <label>New York</label>
-!   <clock timezone="UTC5"/>
-!   <calendar timezone="UTC5"/>
+!   <track align="top">
+!     <label>New York</label>
+!     <clock timezone="UTC5"/>
+!     <calendar timezone="UTC5"/>
+!   </track>
 !
-!   <label size="20">Broken Hill,
-!   New South Wales</label>
-!   <clock timezone="UTC-10:30"/>
-!   <calendar timezone="UTC-10:30"/>
+!   <track align="bottom">
+!     <label size="20">Broken Hill,
+!     New South Wales</label>
+!     <clock timezone="UTC-10:30"/>
+!     <calendar timezone="UTC-10:30"/>
+!   </track>
 ! </config>
+
+Note, how the use of '<track>' arranges the widgets in three separate columns.
+This feature was added in the depot-archive version 2024-10-15.
 
 [image system_info_timezones]
 
@@ -235,5 +244,7 @@ Links
 :README:
 
   [https://raw.githubusercontent.com/jschlatow/goa-projects/master/lvgl/system_info/pkg/system_info/README]
+
+_Edit 2024-10-15: Add <track> example._
 
 | goa sculpt lvgl
