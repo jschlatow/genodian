@@ -80,3 +80,6 @@ version (e.g. 'depot/local/index/21.03') with the following content:
 
 *Ninth and last*, startup the falkon pkg from your local depot and open a test
 page with emoji (e.g. this article).
+
+_Edit 2025-05-13: A modded falkon_qt6-jemalloc archive for Sculpt 25.04 is available on my depot._
+
