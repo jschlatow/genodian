@@ -104,7 +104,7 @@ the default config, you see the clock, calendar, battery as well as the
 tabular widgets for the NIC router and IOMMU state. The widgets are arranged
 automatically in columns from left to right.  The available widgets and their
 attributes is documented in the
-[https://raw.githubusercontent.com/jschlatow/goa-projects/master/lvgl/system_info/pkg/system_info/README - README].
+[https://raw.githubusercontent.com/jschlatow/goa-projects/master/apps/system_info/pkg/system_info/README - README].
 
 Since the _system_info_ package merely comprises the equally-named component,
 you may easily provide your own configuration by means of a launcher file. I
@@ -239,11 +239,11 @@ Links
 
 :Goa project:
 
-  [https://github.com/jschlatow/goa-projects/tree/master/lvgl/system_info]
+  [https://github.com/jschlatow/goa-projects/tree/master/apps/system_info]
 
 :README:
 
-  [https://raw.githubusercontent.com/jschlatow/goa-projects/master/lvgl/system_info/pkg/system_info/README]
+  [https://raw.githubusercontent.com/jschlatow/goa-projects/master/apps/system_info/pkg/system_info/README]
 
 _Edit 2024-10-15: Add <track> example._
 

@@ -646,7 +646,7 @@ repository.
 
 :Ported Lomiri Calculator App:
 
-  [https://github.com/jschlatow/goa-projects/tree/master/lomiri]
+  [https://github.com/jschlatow/goa-projects/tree/master/ports/lomiri-calculator-app]
 
 Next steps
 ----------

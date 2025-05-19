@@ -94,7 +94,7 @@ Since I'm using archives that I manage with Goa in my customised Sculpt, I
 must also build and publish my Goa projects. First, I bump the project versions
 as follows:
 
-! goa-projects/sculpt> goa bump-version -r
+! goa-projects/apps> goa bump-version -r
 
 This command recurses into the subdirectories, finds version files and updates
 these to the current date. Next, I publish my depot index that I manage with
