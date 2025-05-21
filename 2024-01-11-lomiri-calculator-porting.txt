@@ -40,6 +40,10 @@ Norman's - regularly updated - beginner-level tutorials first:
   [https://genodians.org/nfeske/2020-01-16-goa-publish]
 
 
+_Edit 2025-05-21: A regularly updated version of this article is available in_
+_the Genode Applications book on genode.org. This book also contains the_
+_beginner-level tutorials mentioned above._
+
 Creating a new Goa project
 --------------------------
 

@@ -37,6 +37,9 @@ implementing a plugin for raw network access.
 Before we jump into the code right away, I will first sketch an overview on how
 TAP devices are used on FreeBSD/Linux and how this maps to the VFS architecture.
 
+_Edit 2025-05-21: A regularly updated version of this article is available in_
+_the Genode Applications book on genode.org._
+
 TAP-device foundations
 ######################
 
