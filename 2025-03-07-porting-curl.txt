@@ -211,7 +211,7 @@ of './configure':
 ! [curl:autoconf]   Features:         AsynchDNS HSTS HTTPS-proxy IPv6 Largefile NTLM SSL TLS-SRP UnixSockets alt-svc threadsafe
 ! [curl:autoconf]
 
-What caught by eye was the missing CA cert bundle and path. Having a TLS
+What caught my eye was the missing CA cert bundle and path. Having a TLS
 enabled binary would be much more useful if there was a way for curl to use a
 CA bundle. Calling './configure --help' in the _src/_ subdirectory clarified
 what arguments to use for this. I ended up adding the following arguments to
