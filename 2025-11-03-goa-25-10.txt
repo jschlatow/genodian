@@ -1,0 +1,131 @@
+
+                       What's new in Goa 25.10
+
+The new release of the Goa SDK, which is aligned with Sculpt OS 25.10, comes
+with a bunch of new features. Let's have a look!
+
+The new release is made available by Goa's integrated update tool:
+
+! $ goa update-goa 25.10
+
+
+Support for wildcard depot user "_"
+-----------------------------------
+
+With the ongoing transformation of the _genode-world_ repository into a
+gathering place for Goa projects, we are facing a new use case of shared
+Goa projects. Originally, Goa required a user to explicitly state the
+depot user for all dependencies of a project. This becomes impractical when
+multiple users want to export or publish the same project. In the Genode
+repository, we addressed this by specifying "_" as a wildcard user in depot
+recipes. With this release, Goa follows suit and supports the use of "_" as a
+wildcard depot user.
+
+The introduction of a wildcard depot user additionally enabled us to further
+streamline the development process with Goa: By default, Goa uses "_" as a depot
+user and implicitly sets '--depot-overwrite' for all its commands except for
+'goa publish'. From now on, only the latter will require the specification of
+a real depot user. In consequence, archives exported during development will be
+placed in _<depot-dir>/_/<type>/<name>/<version>_.
+
+Moreover, the new Goa also supports wildcard version specifications for depot
+archives. Goa will use version specifications for archives from depot user "_"
+as a fallback if there is no version specification available for the actual
+depot user.
+
+
+Additional archive-version look-up from depot index
+--------------------------------------------------
+
+By default, Goa resolves versions of depot archives via the version
+specifications in _goarc_ files. Additionally, it supports version look-up from 
+a Genode repository, version overrides on the command line, and version
+detection from _version_ files in project directories.
+
+With the new release, we added support for version look-up from a depot
+index. This enables Goa users to publish certain archives (e.g. libraries) to
+be used by other users in their own Goa projects. For this purpose, we extended
+Goa's support for depot-index projects so that _index_ files not only accept
+_pkg_ nodes but also _api_ and _src_ nodes.
+
+In the scope of this feature, we added an '--archive' command-line option
+to 'goa archive-versions'. With this option, you are able to ask Goa for
+the versions of particular depot archives, e.g.:
+
+! $ goa archive-versions --archive jschlatow/api/lvgl --archive jschlatow/src/lvgl
+! set version(jschlatow/src/lvgl) 2025-10-29
+! set version(jschlatow/api/lvgl) 2025-10-29
+
+Note that Goa only updates depot index files with a fresh download if provided
+with the '--update-index' switch.
+
+
+New "info" command
+------------------
+
+The new 'goa info <archive>'' command provides convenient access to the _README_
+files of src and pkg archives. Let's have a look at an example that combines
+the _info_ command with lookup of version info from a user's depot index:
+
+! $ goa info jschlatow/pkg/system_info --update-index
+! download jschlatow/index/25.10.xz
+! download jschlatow/index/25.10.xz.sig
+! download jschlatow/pkg/system_info/2025-10-29.tar.xz
+! download jschlatow/pkg/system_info/2025-10-29.tar.xz.sig
+! ...
+
+After downloading the index and the referenced _system_info_ package (including
+all its dependencies), Goa shows the contained README using 'man'.
+
+Improved Rust and Meson support
+-------------------------------
+
+Goa relies on a nightly build of the Rust toolchain
+(see [https://github.com/genodelabs/goa/issues/101 - #101]). With the new
+release, Goa automatically installs a known-to-work nightly version of the
+Rust toolchain using 'rustup'. The toolchain is installed into Goa's
+_install_dir_, which defaults to _var/install_ in the project directory.
+In order to share the local installation between multiple Goa projects, you may
+add 'set install_dir <path>' to a shared _goarc_ file.
+
+Before 25.10, the Meson support in Goa was restricted to executable-only or
+library-only projects, although Meson allows building executable and library
+targets in a single project. In this release, we extended the Meson support by
+using a two-stage build. Goa now detects what targets a Meson project contains
+and adapts the linker flags correspondingly.
+
+
+Integrated performance profiling
+--------------------------------
+
+The new depot archive _genodelabs/api/profile_ contains a plain profiling
+library that leverages GCC's '-finstrument-functions'. Profiling must be
+enabled for each thread individually as instructed by the
+[https://github.com/genodelabs/genode/blob/master/repos/os/src/lib/profile/README - README].
+Once enabled, the data is printed periodically. The output can be parsed by
+the backtrace utility. You may therefore use 'goa backtrace' as a replacement
+for 'goa run'.
+
+A usage example for Goa is available at
+[https://github.com/genodelabs/goa/tree/master/examples/profiling - examples/profiling].
+
+
+Human-oriented configuration format
+-----------------------------------
+
+Sculpt 25.10 comes with
+[http://genodians.org/nfeske/2025-10-30-sculpt-human - optional support]
+for a new human-oriented configuration format referred to as _HRD_, which
+stands for "humand-readable data".
+
+In order to kick off the HRD support in Goa, we completely reworked the parsing
+and generation of configuration files in Goa. More precisely, we eliminated
+the use of 'xmllint' for XML parsing and replaced it by the new 'hrd' tool.
+The tool accepts XML as well as HRD as input data, and is able to reformat the
+data as HRD or XML. We therefore pass generated configuration data through the
+'hrd' tool to seamlessly switch between XML and HRD as output format.
+Goa still uses XML as the default output format. You may switch to HRD output by
+adding the command-line switch '--hrd' or by adding 'set hrd 1' to a _goarc_
+file.
+
+| goa
