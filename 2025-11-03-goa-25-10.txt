@@ -115,17 +115,19 @@ Human-oriented configuration format
 
 Sculpt 25.10 comes with
 [http://genodians.org/nfeske/2025-10-30-sculpt-human - optional support]
-for a new human-oriented configuration format referred to as _HRD_, which
-stands for "humand-readable data".
+for a new human-oriented configuration format referred to as _HID_, which
+stands for "humand-inclined data".
 
-In order to kick off the HRD support in Goa, we completely reworked the parsing
+In order to kick off the HID support in Goa, we completely reworked the parsing
 and generation of configuration files in Goa. More precisely, we eliminated
-the use of 'xmllint' for XML parsing and replaced it by the new 'hrd' tool.
-The tool accepts XML as well as HRD as input data, and is able to reformat the
-data as HRD or XML. We therefore pass generated configuration data through the
-'hrd' tool to seamlessly switch between XML and HRD as output format.
-Goa still uses XML as the default output format. You may switch to HRD output by
-adding the command-line switch '--hrd' or by adding 'set hrd 1' to a _goarc_
+the use of 'xmllint' for XML parsing and replaced it by the new 'hid' tool.
+The tool accepts XML as well as HID as input data, and is able to reformat the
+data as HID or XML. We therefore pass generated configuration data through the
+'hid' tool to seamlessly switch between XML and HID as output format.
+Goa still uses XML as the default output format. You may switch to HID output by
+adding the command-line switch '--hid' or by adding 'set hid 1' to a _goarc_
 file.
+
+_Edit 2025-11-26: Renamed HRD to HID_ 
 
 | goa
