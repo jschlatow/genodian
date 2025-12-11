@@ -7,4 +7,6 @@ full-time Genode developer in 2021.
 
 *GitHub* [https://github.com/jschlatow - jschlatow]
 
+*Codeberg* [https://codeberg.org/jschlatow - jschlatow]
+
 *Company* [https://www.genode-labs.com - Genode Labs]
