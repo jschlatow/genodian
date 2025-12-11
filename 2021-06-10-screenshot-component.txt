@@ -18,7 +18,7 @@ the attribute is present, it takes the root node’s tag and the current
 data/time (from an Rtc session) to generate a filename.
 
 You can find the source files for this package in my
-[https://github.com/jschlatow/goa-projects - goa-projects] repository.
+[https://codeberg.org/jschlatow/goa-projects - goa-projects] repository.
 
 Usage
 #####

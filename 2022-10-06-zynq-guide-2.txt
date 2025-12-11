@@ -965,7 +965,7 @@ Vivado’s TCL console, I enter the following command:
 
 The '-paths_relative_to' argument is essential because it converts the paths of
 the source files into relative paths. In my
-[https://github.com/jschlatow/goa-projects - goa-projects repository], 
+[https://codeberg.org/jschlatow/goa-projects - goa-projects repository], 
 I created the subdirectory _zynq/zybo_z720_rgb-bitstream/_ to create a new Goa
 project and copy _vivado.tcl_ into the _src/_ subdirectory of the new Goa
 project. By inspecting the tcl file, we can get a list of required source files.

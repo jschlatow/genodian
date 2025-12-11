@@ -9,7 +9,7 @@ modifications have worked out for me and provide ideas to fellow Genodians.
 
 In order to keep my customisations separate from the main Genode repository, I
 created a separate
-[https://github.com/jschlatow/sculpt - sculpt repo].
+[https://codeberg.org/jschlatow/sculpt - sculpt repo].
 This repo hosts my sculpt customisations as well as additional depot recipes.
 
 Depot Recipes
@@ -19,7 +19,7 @@ Most notably, I added two meta pkg archives: _sculpt_packages_ and
 _goa_distribution_. The former aggregates additional archives I need to publish
 because I'm referencing them in my depot index. The latter aggregates archives
 that I need for my
-[https://github.com/jschlatow/goa-projects - Goa projects]
+[https://codeberg.org/jschlatow/goa-projects - Goa projects]
 Moreover, I added a _pkg/vbox6-block-capture_ archive that applies changes to
 the vbox6 runtime so that I am able to run my native Linux installation as a
 VM in Sculpt as I wrote in

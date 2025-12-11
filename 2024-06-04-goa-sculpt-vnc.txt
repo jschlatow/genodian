@@ -91,7 +91,7 @@ repository.
 
 :Goa testbed vnc preset:
 
-  [https://github.com/jschlatow/sculpt/blob/master/sculpt/deploy/goa_testbed_vnc]
+  [https://codeberg.org/jschlatow/sculpt/src/branch/master/sculpt/deploy/goa_testbed_vnc]
 
 
 Using Goa with a VNC client

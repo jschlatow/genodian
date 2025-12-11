@@ -279,7 +279,7 @@ Now, I can 'goa run' the project, connect with a VNC client (I used gtk-vnc) to
 interpret the ':0' as a display id and translate it to TCP port '5900'.
 
 If you are interested in the complete picture, you can find all project files in
-my [https://github.com/jschlatow/goa-projects - goa-projects] repository.
+my [https://codeberg.org/jschlatow/goa-projects - goa-projects] repository.
 
 Usage
 #####

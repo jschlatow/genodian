@@ -67,7 +67,7 @@ the parent. See 'goa help targets' for more details.
 
 :Goa testbed project:
 
-  [https://github.com/jschlatow/goa-projects/tree/master/apps/goa_testbed]
+  [https://codeberg.org/jschlatow/goa-projects/src/branch/master/apps/goa_testbed]
 
 :Goa testbed preset:
 

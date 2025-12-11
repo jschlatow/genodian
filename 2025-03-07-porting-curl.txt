@@ -16,7 +16,7 @@ into my unix_shell runtime that you can install in Sculpt from my depot index.
 
 :Curl port in my goa-projects repository:
 
-  [https://github.com/jschlatow/goa-projects/tree/master/ports/curl]
+  [https://codeberg.org/jschlatow/goa-projects/src/branch/master/ports/curl]
 
 
 Importing the curl source code
@@ -307,7 +307,7 @@ imported into a VFS using the '<tar name="curl.tar"/>' plugin. Along with a CA
 bundle at _/etc/ssl/certs/ca-certificates.crt_, you can run a bash on this VFS
 and use the curl command-line tool. Note that this also requires the enablement
 of network for the bash. I have integrated curl and network enablement into
-[https://github.com/jschlatow/goa-projects/tree/master/apps/unix_shell - my unix_shell runtime]
+[https://codeberg.org/jschlatow/goa-projects/src/branch/master/apps/unix_shell - my unix_shell runtime]
 available on [https://depot.genode.org/jschlatow - my depot].
 
 

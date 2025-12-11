@@ -104,7 +104,7 @@ the default config, you see the clock, calendar, battery as well as the
 tabular widgets for the NIC router and IOMMU state. The widgets are arranged
 automatically in columns from left to right.  The available widgets and their
 attributes is documented in the
-[https://raw.githubusercontent.com/jschlatow/goa-projects/master/apps/system_info/pkg/system_info/README - README].
+[https://codeberg.org/jschlatow/goa-projects/raw/branch/master/apps/system_info/pkg/system_info/README - README].
 
 Since the _system_info_ package merely comprises the equally-named component,
 you may easily provide your own configuration by means of a launcher file. I
@@ -194,7 +194,7 @@ Development
 -----------
 
 The _system_info_ component uses LVGL. I have added an _lvgl_ project to my
-[https://github.com/jschlatow/goa-projects - goa-projects repository] in order
+[https://codeberg.org/jschlatow/goa-projects - goa-projects repository] in order
 to make a Genode port of LVGL available in form of an _api_ archive. Typically,
 LVGL is used as a static library and specifically tailored to the application.
 Since Goa only supports shared libraries, however, I enabled most of
@@ -239,11 +239,11 @@ Links
 
 :Goa project:
 
-  [https://github.com/jschlatow/goa-projects/tree/master/apps/system_info]
+  [https://codeberg.org/jschlatow/goa-projects/src/branch/master/apps/system_info]
 
 :README:
 
-  [https://raw.githubusercontent.com/jschlatow/goa-projects/master/apps/system_info/pkg/system_info/README]
+  [https://codeberg.org/jschlatow/goa-projects/raw/branch/master/apps/system_info/pkg/system_info/README]
 
 _Edit 2024-10-15: Add <track> example._
 

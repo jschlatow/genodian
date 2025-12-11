@@ -650,7 +650,7 @@ repository.
 
 :Ported Lomiri Calculator App:
 
-  [https://github.com/jschlatow/goa-projects/tree/master/ports/lomiri-calculator-app]
+  [https://codeberg.org/jschlatow/goa-projects/src/branch/master/ports/lomiri-calculator-app]
 
 Next steps
 ----------
